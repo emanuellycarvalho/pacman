@@ -14,11 +14,12 @@ typedef struct Player {
 //variaveis globais
 const float FPS = 100;
 
-const int SCREEN_W = 400;
-const int SCREEN_H = 225;
+const int SCREEN_W = 800;
+const int SCREEN_H = 550;
 const int PLAYER_SIZE = 25;
 const int STEP_SIZE = 30;
 const int END_SIZE = 30;
+const int MENU_SIZE = 110;
 
 ALLEGRO_DISPLAY *display = NULL; 
 ALLEGRO_EVENT_QUEUE *event_queue = NULL; 
@@ -76,14 +77,7 @@ int init(){
 
 }
 
-void drawExplorationCenario(){
-
-	al_clear_to_color(al_map_rgb(0, 0, 0));
-	al_draw_filled_rectangle(SCREEN_W - 90, 10, SCREEN_W - 10, 120, al_map_rgb(145, 80, 0));
-
-}
-
-void init_player(Player *p){
+void initExplorationPlayer(Player *p){
 
 	p->hp = 100;
 	p->size = PLAYER_SIZE;
@@ -93,6 +87,31 @@ void init_player(Player *p){
 
 }
 
+void initBattlePlayer(Player *p){
+
+	p->size = PLAYER_SIZE * 3;
+	p->x = p->size + p->size/3;
+	p->y = (SCREEN_H - MENU_SIZE)/2 + p->size;
+	p->color = al_map_rgb(255, 213, 0);
+
+}
+
+void drawExplorationCenario(){
+
+	al_clear_to_color(al_map_rgb(0, 0, 0));
+	al_draw_filled_rectangle(SCREEN_W - 90, 10, (SCREEN_W - 10), (SCREEN_H/3), al_map_rgb(145, 80, 0));
+
+}
+
+void drawBattleCenario(Player p){
+
+	al_clear_to_color(al_map_rgb(0, 0, 0));
+	al_draw_filled_rectangle(0, 0, SCREEN_W, MENU_SIZE, al_map_rgb(230, 0, 23));
+	al_draw_filled_rectangle(0, (MENU_SIZE - 1), SCREEN_W, (MENU_SIZE + 5), al_map_rgb(0, 153, 255));
+	
+}
+
+
 void drawExplorationPlayer(Player p){
 
 	int x = p.x + p.size;
@@ -101,6 +120,26 @@ void drawExplorationPlayer(Player p){
 
 	al_draw_filled_circle(p.x, p.y, p.size, p.color);
 	al_draw_filled_triangle(p.x, p.y, x, y, x, z, al_map_rgb(0, 0, 0));
+
+}
+
+void drawBattlePlayer(Player p){
+
+	int x = p.x + p.size;
+	int y = p.y + p.size/2;
+	int z = p.y - p.size;
+
+	al_draw_filled_circle(p.x, p.y, p.size, p.color);
+	al_draw_filled_triangle(p.x, p.y, x, y, x, z, al_map_rgb(0, 0, 0));
+
+	//damage bar
+	int x1 = p.x - p.size;
+	int y1 = p.y + (p.y / 3);	
+
+	int x2 = p.x + p.size;
+	int y2 = y1 + 5;
+
+	al_draw_filled_rectangle(x1, y1, x2, y2, al_map_rgb(4, 230, 0));
 
 }
 
@@ -155,6 +194,11 @@ bool isHome(Player *p){
 	return false;
 }
 
+bool foundGhost(Player *p){
+
+	return true;
+}
+
 int main(int argc, char const *argv[]){
 
 	init();
@@ -164,7 +208,7 @@ int main(int argc, char const *argv[]){
 
 	// LOOPING DO JOGO --------------------------------------------------------------------------------------------------------
 	al_start_timer(timer);
-	init_player(&p);
+	initExplorationPlayer(&p);
 	
 	while(playing){
 
@@ -178,10 +222,18 @@ int main(int argc, char const *argv[]){
 				drawExplorationPlayer(p);
 
 				if(isHome(&p)){
-					playing = 0;
+					// playing = 0;
+				}
+
+				if(foundGhost(&p)){
+					exploration = false;
 				}
 
 			} else {
+
+				initBattlePlayer(&p);
+				drawBattleCenario(p);
+				drawBattlePlayer(p);
 
 			}
 
