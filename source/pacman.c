@@ -14,11 +14,11 @@ typedef struct Player {
 //variaveis globais
 const float FPS = 100;
 
-const int SCREEN_W = 800;
-const int SCREEN_H = 550;
-const int END_SIZE = 30;
+const int SCREEN_W = 400;
+const int SCREEN_H = 225;
 const int PLAYER_SIZE = 25;
-	  int STEP_SIZE = PLAYER_SIZE - 5;
+const int STEP_SIZE = 30;
+const int END_SIZE = 30;
 
 ALLEGRO_DISPLAY *display = NULL; 
 ALLEGRO_EVENT_QUEUE *event_queue = NULL; 
@@ -30,7 +30,7 @@ int init(){
 
 	// QUE HAJA LUZ ------------------------------------------------------------------------------------------------------------
 	if(!al_init()) {
-		fprintf(stderr, "failed to initialize allegro!\n");
+		fprintf(stderr, "opa, lombrou na hora de inicializar o allegro!\n");
 		return -1;
 	}
 
@@ -60,12 +60,12 @@ int init(){
 
 	// INSTALANDO FONTES DE EVENTOS ----------------------------------------------------------------------------------------------
 	if(!al_install_keyboard()) {
-		fprintf(stderr, "failed to install keyboard!\n");
+		fprintf(stderr, "opa, lombrou na hora de instalar o keyboard!\n");
 		return -1;
 	}
 
 	if(!al_install_mouse()) {
-		fprintf(stderr, "failed to initialize mouse!\n");
+		fprintf(stderr, "opa, lombrou na hora de instalar o mouse!\n");
 		return -1;
 	}
 
@@ -76,10 +76,10 @@ int init(){
 
 }
 
-void init_cenario(){
+void drawExplorationCenario(){
 
 	al_clear_to_color(al_map_rgb(0, 0, 0));
-	al_draw_filled_ellipse(SCREEN_W, 0, -30, 30, al_map_rgb(0, 255, 0))
+	al_draw_filled_rectangle(SCREEN_W - 90, 10, SCREEN_W - 10, 120, al_map_rgb(145, 80, 0));
 
 }
 
@@ -146,6 +146,15 @@ void explorationKeyDown(Player *p, int key){
 	}
 }
 
+bool isHome(Player *p){
+	// al_draw_filled_rectangle(SCREEN_W - 90, 10, SCREEN_W - 10, 120, al_map_rgb(145, 80, 0));
+	if(p->x + (p->size * 2)>= SCREEN_W - 90 && p->y - (p->size * 2)<= 120){
+		return true;
+	}
+
+	return false;
+}
+
 int main(int argc, char const *argv[]){
 
 	init();
@@ -163,10 +172,15 @@ int main(int argc, char const *argv[]){
 		al_wait_for_event(event_queue, &ev);
 
 		if(ev.type == ALLEGRO_EVENT_TIMER) {
-			init_cenario();
 			
 			if(exploration){
+				drawExplorationCenario();
 				drawExplorationPlayer(p);
+
+				if(isHome(&p)){
+					playing = 0;
+				}
+
 			} else {
 
 			}
@@ -188,10 +202,10 @@ int main(int argc, char const *argv[]){
 			if(exploration){
 
 				explorationKeyDown(&p, ev.keyboard.keycode);
-				printf("%i", p.x);
-				printf(", ");
-				printf("%i", p.y);
-				printf("\n");
+				// printf("%i", p.x);
+				// printf(", ");
+				// printf("%i", p.y);
+				// printf("\n");
 			}
 
 
