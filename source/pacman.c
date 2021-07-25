@@ -1,6 +1,9 @@
+#include <math.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <allegro5/allegro.h>
+#include <allegro5/allegro_font.h>
+#include <allegro5/allegro_ttf.h>
 #include <allegro5/allegro_primitives.h>
 
 typedef struct Player {
@@ -16,14 +19,16 @@ const float FPS = 100;
 
 const int SCREEN_W = 800;
 const int SCREEN_H = 550;
+const int MAX_DIST = 25;
 const int PLAYER_SIZE = 25;
 const int STEP_SIZE = 30;
 const int END_SIZE = 30;
 const int MENU_SIZE = 110;
 
-ALLEGRO_DISPLAY *display = NULL; 
 ALLEGRO_EVENT_QUEUE *event_queue = NULL; 
+ALLEGRO_DISPLAY *display = NULL; 
 ALLEGRO_TIMER *timer = NULL;
+ALLEGRO_FONT *font = NULL;
 
 
 
@@ -58,6 +63,12 @@ int init(){
 		fprintf(stderr, "opa, lombrou na hora de inicializar as primitivas!\n");
         return -1;
     }	
+
+	// INSTALANDO FONTES DE TEXTO ----------------------------------------------------------------------------------------------
+    font = al_load_font("pixelfont.ttf", 32, 1);   
+	if(font == NULL) {
+		fprintf(stderr, "opa, lombrou na hora de inicializar a fonte!\n");
+	}
 
 	// INSTALANDO FONTES DE EVENTOS ----------------------------------------------------------------------------------------------
 	if(!al_install_keyboard()) {
@@ -96,18 +107,19 @@ void initBattlePlayer(Player *p){
 
 }
 
-void drawExplorationCenario(){
+void drawExplorationScenario(){
 
 	al_clear_to_color(al_map_rgb(0, 0, 0));
-	al_draw_filled_rectangle(SCREEN_W - 90, 10, (SCREEN_W - 10), (SCREEN_H/3), al_map_rgb(145, 80, 0));
+	al_draw_filled_rectangle(SCREEN_W - 90, 10, (SCREEN_W - 10), (SCREEN_H/4), al_map_rgb(145, 80, 0));
 
 }
 
-void drawBattleCenario(Player p){
+void drawBattleScenario(Player p){
 
 	al_clear_to_color(al_map_rgb(0, 0, 0));
 	al_draw_filled_rectangle(0, 0, SCREEN_W, MENU_SIZE, al_map_rgb(230, 0, 23));
 	al_draw_filled_rectangle(0, (MENU_SIZE - 1), SCREEN_W, (MENU_SIZE + 5), al_map_rgb(0, 153, 255));
+	// al_draw_text(font, al_map_rgb(0, 153, 255), 20, 20, 0, "RUN");
 	
 }
 
@@ -186,7 +198,6 @@ void explorationKeyDown(Player *p, int key){
 }
 
 bool isHome(Player *p){
-	// al_draw_filled_rectangle(SCREEN_W - 90, 10, SCREEN_W - 10, 120, al_map_rgb(145, 80, 0));
 	if(p->x + (p->size * 2)>= SCREEN_W - 90 && p->y - (p->size * 2)<= 120){
 		return true;
 	}
@@ -194,10 +205,22 @@ bool isHome(Player *p){
 	return false;
 }
 
-bool foundGhost(Player *p){
+
+float dist(int x1, int y1, int x2, int y2){
+	return sqrt(pow(x1 - x2, 2) + pow(y1 - y2,2));
+}
+
+bool foundGhost(Player p){
 
 	return true;
+
+	// if(dist(p.x, p.y, 0, 0) <= MAX_DIST){
+	// 	return true;
+	// }
+
+	// return false;
 }
+
 
 int main(int argc, char const *argv[]){
 
@@ -218,21 +241,21 @@ int main(int argc, char const *argv[]){
 		if(ev.type == ALLEGRO_EVENT_TIMER) {
 			
 			if(exploration){
-				drawExplorationCenario();
+				drawExplorationScenario();
 				drawExplorationPlayer(p);
 
 				if(isHome(&p)){
-					// playing = 0;
+					playing = 0;
 				}
 
-				if(foundGhost(&p)){
+				if(foundGhost(p)){
 					exploration = false;
 				}
 
 			} else {
 
 				initBattlePlayer(&p);
-				drawBattleCenario(p);
+				drawBattleScenario(p);
 				drawBattlePlayer(p);
 
 			}

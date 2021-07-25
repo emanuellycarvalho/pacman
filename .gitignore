@@ -1,3 +1,2 @@
 *.exe
-*.o
 source/allegro_base.c
