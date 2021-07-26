@@ -64,10 +64,17 @@ int init(){
         return -1;
     }	
 
+    al_init_font_addon();
+
+    if(!al_init_ttf_addon()) {
+		fprintf(stderr, "opa, lombrou na hora de inicializar o ttf!\n");
+		return -1;
+	}
+
 	// INSTALANDO FONTES DE TEXTO ----------------------------------------------------------------------------------------------
-    font = al_load_font("pixelfont.ttf", 32, 1);   
-	if(font == NULL) {
-		fprintf(stderr, "opa, lombrou na hora de inicializar a fonte!\n");
+	font = al_load_font("pixelfont.ttf", 32, 1);   
+	if(!font) {
+		fprintf(stderr, "opa, lombrou na hora de carregar a pixelfont!\n");
 	}
 
 	// INSTALANDO FONTES DE EVENTOS ----------------------------------------------------------------------------------------------
