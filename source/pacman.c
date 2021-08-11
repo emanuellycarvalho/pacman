@@ -5,6 +5,7 @@
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
 #include <allegro5/allegro_primitives.h>
+#include <allegro5/allegro_image.h>
 
 typedef struct Player {
 
@@ -24,6 +25,7 @@ const int PLAYER_SIZE = 25;
 const int STEP_SIZE = 30;
 const int END_SIZE = 30;
 const int MENU_SIZE = 110;
+const int MO_Y = 20; //menu options
 
 ALLEGRO_EVENT_QUEUE *event_queue = NULL; 
 ALLEGRO_DISPLAY *display = NULL; 
@@ -95,6 +97,9 @@ int init(){
 
 }
 
+
+// EXPLORATION ---------------------------------------------------------------------------------------------------------------------
+
 void initExplorationPlayer(Player *p){
 
 	p->hp = 100;
@@ -105,14 +110,6 @@ void initExplorationPlayer(Player *p){
 
 }
 
-void initBattlePlayer(Player *p){
-
-	p->size = PLAYER_SIZE * 3;
-	p->x = p->size + p->size/3;
-	p->y = (SCREEN_H - MENU_SIZE)/2 + p->size;
-	p->color = al_map_rgb(255, 213, 0);
-
-}
 
 void drawExplorationScenario(){
 
@@ -120,16 +117,6 @@ void drawExplorationScenario(){
 	al_draw_filled_rectangle(SCREEN_W - 90, 10, (SCREEN_W - 10), (SCREEN_H/4), al_map_rgb(145, 80, 0));
 
 }
-
-void drawBattleScenario(Player p){
-
-	al_clear_to_color(al_map_rgb(0, 0, 0));
-	al_draw_filled_rectangle(0, 0, SCREEN_W, MENU_SIZE, al_map_rgb(230, 0, 23));
-	al_draw_filled_rectangle(0, (MENU_SIZE - 1), SCREEN_W, (MENU_SIZE + 5), al_map_rgb(0, 153, 255));
-	// al_draw_text(font, al_map_rgb(0, 153, 255), 20, 20, 0, "RUN");
-	
-}
-
 
 void drawExplorationPlayer(Player p){
 
@@ -139,26 +126,6 @@ void drawExplorationPlayer(Player p){
 
 	al_draw_filled_circle(p.x, p.y, p.size, p.color);
 	al_draw_filled_triangle(p.x, p.y, x, y, x, z, al_map_rgb(0, 0, 0));
-
-}
-
-void drawBattlePlayer(Player p){
-
-	int x = p.x + p.size;
-	int y = p.y + p.size/2;
-	int z = p.y - p.size;
-
-	al_draw_filled_circle(p.x, p.y, p.size, p.color);
-	al_draw_filled_triangle(p.x, p.y, x, y, x, z, al_map_rgb(0, 0, 0));
-
-	//damage bar
-	int x1 = p.x - p.size;
-	int y1 = p.y + (p.y / 3);	
-
-	int x2 = p.x + p.size;
-	int y2 = y1 + 5;
-
-	al_draw_filled_rectangle(x1, y1, x2, y2, al_map_rgb(4, 230, 0));
 
 }
 
@@ -219,7 +186,7 @@ float dist(int x1, int y1, int x2, int y2){
 
 bool foundGhost(Player p){
 
-	return true;
+	return false;
 
 	// if(dist(p.x, p.y, 0, 0) <= MAX_DIST){
 	// 	return true;
@@ -227,6 +194,67 @@ bool foundGhost(Player p){
 
 	// return false;
 }
+
+
+// BATTLE ---------------------------------------------------------------------------------------------------------------------
+void drawBattlePlayer(Player p){
+
+	int x = p.x + p.size;
+	int y = p.y + p.size/2;
+	int z = p.y - p.size;
+
+	al_draw_filled_circle(p.x, p.y, p.size, p.color);
+	al_draw_filled_triangle(p.x, p.y, x, y, x, z, al_map_rgb(0, 0, 0));
+
+	//damage bar
+	int x1 = p.x - p.size;
+	int y1 = p.y + (p.y / 3);	
+
+	int x2 = p.x + p.size;
+	int y2 = y1 + 5;
+
+	al_draw_filled_rectangle(x1, y1, x2, y2, al_map_rgb(4, 230, 0));
+
+}
+
+void initBattlePlayer(Player *p){
+
+	p->size = PLAYER_SIZE * 3;
+	p->x = p->size + p->size/3;
+	p->y = (SCREEN_H - MENU_SIZE)/2 + p->size;
+	p->color = al_map_rgb(255, 213, 0);
+
+}
+
+
+void drawBattleScenario(Player p){
+	int shadow_y = MO_Y + 1;
+	int middle_x = (SCREEN_W / 2) - 140;
+	int first_x = middle_x - 200;
+	int third_x = middle_x + 360;
+
+
+	// DISPLAY AND MENU ----------------------------------------------------------------------------------------------
+	al_clear_to_color(al_map_rgb(0, 0, 0));
+	al_draw_filled_rectangle(0, 0, SCREEN_W, MENU_SIZE, al_map_rgb(230, 0, 23));
+	al_draw_filled_rectangle(0, (MENU_SIZE - 1), SCREEN_W, (MENU_SIZE + 5), al_map_rgb(0, 153, 255));
+	al_draw_filled_rectangle(0, (MENU_SIZE + 5), SCREEN_W, (MENU_SIZE + 7), al_map_rgb(9, 0, 255));
+
+	// MENU OPTIONS ----------------------------------------------------------------------------------------------
+	al_draw_text(font, al_map_rgb(143, 16, 7), (first_x + 1), shadow_y, 0, "ATTACK"); //shadow 
+	al_draw_text(font, al_map_rgb(9, 0, 255), first_x, MO_Y, 0, "ATTACK");
+
+	al_draw_text(font, al_map_rgb(143, 16, 7), (middle_x + 1), shadow_y, 0, "SPECIAL ATTACK"); //shadow 
+	al_draw_text(font, al_map_rgb(9, 0, 255), middle_x, MO_Y, 0, "SPECIAL ATTACK");
+
+	al_draw_text(font, al_map_rgb(143, 16, 7), (third_x + 1), shadow_y, 0, "RUN"); //shadow 
+	al_draw_text(font, al_map_rgb(9, 0, 255), third_x, MO_Y, 0, "RUN");
+	
+	// POINTER -----------------------------------------------------------------------------------------------------------
+
+
+}
+
 
 
 int main(int argc, char const *argv[]){
