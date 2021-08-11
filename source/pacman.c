@@ -23,6 +23,12 @@ typedef struct Pointer {
 
 } Pointer;
 
+typedef struct Ghost {
+
+	int x, y;
+
+} Ghost;
+
 //variaveis globais
 const float FPS = 100;
 
@@ -81,8 +87,13 @@ int init(){
 		return -1;
 	}
 
+	if(!al_init_image_addon()){
+		fprintf(stderr, "opa, lombrou na hora de inicializar o ttf!\n");
+		return -1;
+	}
+
 	// INSTALANDO FONTES DE TEXTO ----------------------------------------------------------------------------------------------
-	font = al_load_font("pixelfont.ttf", 32, 1);   
+	font = al_load_font("../assets/pixelfont.ttf", 32, 1);   
 	if(!font) {
 		fprintf(stderr, "opa, lombrou na hora de carregar a pixelfont!\n");
 	}
@@ -242,10 +253,8 @@ void initPointer(Pointer *pointer){
 	pointer->y = MO_Y + 32;
 	pointer->color = al_map_rgb(4, 230, 0);
 
-	// al_draw_filled_circle(first_pointer_x, (MO_Y + 32), pointer_size, al_map_rgb(4, 230, 0));
-	// al_draw_filled_circle(middle_pointer_x, (MO_Y + 32), pointer_size, al_map_rgb(4, 230, 0));
-	// al_draw_filled_circle(third_pointer_x, (MO_Y + 32), pointer_size, al_map_rgb(4, 230, 0));
 }
+
 
 void drawBattleScenario(Player p){
 	int shadow_y = MO_Y + 1;
@@ -276,19 +285,32 @@ void drawPointer(Pointer p){
 	al_draw_filled_circle(p.x, p.y, p.size, p.color);
 }
 
-void battleKeyDown(Pointer *pointer, int key){
-	// int constant = (SCREEN_W / 2) - 340;
-	// int x = constant + (constant / 2) + (p->size * 3);
+
+void drawGhost(Player p){
+
+	ALLEGRO_BITMAP *ghost = al_load_bitmap("../assets/img/2.bmp"); //entre 2 e 7
+	int x = p.x + p.size + 400;
+	int y = p.y - (p.size * 1.25);
+	al_draw_bitmap(ghost, x, y, 0);
+
+	//damage bar
+	int x1 = 90 + x - p.size;
+	int y1 = p.y + (p.y / 3);	
+
+	int x2 =  90 + x + p.size;
+	int y2 = y1 + 5;
+
+	al_draw_filled_rectangle(x1, y1, x2, y2, al_map_rgb(4, 230, 0));
+
+}
+
+int battleKeyDown(Pointer *pointer, int key){
 	int constant = (SCREEN_W / 2) - 140;
 
 	int constant2 = constant - 200;
 	int option1 = constant2 + (constant2 / 2) + (pointer->size * 3);
 	int option2 = (SCREEN_W / 2) - (pointer->size * 3);
 	int option3 = option2 + 260;
-
-	// int middle_pointer_x = (SCREEN_W / 2) - (pointer_size * 3);
-	// int first_pointer_x = first_option_x + (first_option_x / 2) + (pointer_size * 3);
-	// int third_pointer_x =  third_option_x + (pointer_size * 5);
 
 	switch(key){
 		case ALLEGRO_KEY_LEFT:
@@ -343,11 +365,12 @@ void battleKeyDown(Pointer *pointer, int key){
 			}
 
 			if(pointer->option == 3){
-				//code
-				break;
+				return 0;
 			}
 		break;
 	}
+
+	return 1;
 
 }
 
@@ -358,6 +381,7 @@ int main(int argc, char const *argv[]){
 	init();
 	Player p; 
 	Pointer pointer; 
+	Ghost g;
 	bool playing = true;
 	bool exploration = true; //true para exploration, false para fight
 
@@ -365,6 +389,7 @@ int main(int argc, char const *argv[]){
 	al_start_timer(timer);
 	initExplorationPlayer(&p);
 	initPointer(&pointer);
+	// initGhost(&g);
 	
 	while(playing){
 
@@ -378,7 +403,7 @@ int main(int argc, char const *argv[]){
 				drawExplorationPlayer(p);
 
 				if(isHome(&p)){
-					playing = 0;
+					playing = false;
 				}
 
 				if(foundGhost(p)){
@@ -389,6 +414,7 @@ int main(int argc, char const *argv[]){
 
 				initBattlePlayer(&p);
 				drawBattleScenario(p);
+				drawGhost(p);
 				drawPointer(pointer);
 				drawBattlePlayer(p);
 
@@ -417,7 +443,9 @@ int main(int argc, char const *argv[]){
 				// printf("\n");
 			} else {
 
-				battleKeyDown(&pointer, ev.keyboard.keycode);
+				if(battleKeyDown(&pointer, ev.keyboard.keycode) == 0){
+					exploration = true;
+				}
 			}
 
 
