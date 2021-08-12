@@ -23,11 +23,13 @@ typedef struct Pointer {
 
 } Pointer;
 
-typedef struct Ghost {
-
+typedef struct Attack {
 	int x, y;
+	int type;
+	bool active;
 
-} Ghost;
+} Attack;
+
 
 //variaveis globais
 const float FPS = 100;
@@ -40,6 +42,11 @@ const int STEP_SIZE = 30;
 const int END_SIZE = 30;
 const int MENU_SIZE = 110;
 const int MO_Y = 20; //menu options
+const int ATTACK_TIME = 4; 
+const int ATTACK_SIZE = 12;
+const int SPECIAL_ATTACK_SIZE = 22;
+const int ATTACK_DAMAGE = 20;
+const int SPECIAL_ATTACK_DAMAGE = 30;
 
 ALLEGRO_EVENT_QUEUE *event_queue = NULL; 
 ALLEGRO_DISPLAY *display = NULL; 
@@ -116,6 +123,9 @@ int init(){
 
 }
 
+int randomInteger(int min, int max){
+	return min + rand()%(max - min +1);
+}
 
 // EXPLORATION ---------------------------------------------------------------------------------------------------------------------
 
@@ -256,7 +266,7 @@ void initPointer(Pointer *pointer){
 }
 
 
-void drawBattleScenario(Player p){
+void drawBattleScenario(Player p, Pointer pointer){
 	int shadow_y = MO_Y + 1;
 	int middle_option_x = (SCREEN_W / 2) - 140;
 	int first_option_x = middle_option_x - 200;
@@ -279,19 +289,18 @@ void drawBattleScenario(Player p){
 	al_draw_text(font, al_map_rgb(143, 16, 7), (third_option_x + 1), shadow_y, 0, "RUN"); //shadow 
 	al_draw_text(font, al_map_rgb(9, 0, 255), third_option_x, MO_Y, 0, "RUN");
 
-}
+	// MENU POINTER ----------------------------------------------------------------------------------------------
+	al_draw_filled_circle(pointer.x, pointer.y, pointer.size, pointer.color);
 
-void drawPointer(Pointer p){
-	al_draw_filled_circle(p.x, p.y, p.size, p.color);
 }
 
 
 void drawGhost(Player p){
 
-	ALLEGRO_BITMAP *ghost = al_load_bitmap("../assets/img/2.bmp"); //entre 2 e 7
+	// ALLEGRO_BITMAP *ghost = al_load_bitmap("../assets/img/2.bmp"); //entre 2 e 7
 	int x = p.x + p.size + 400;
 	int y = p.y - (p.size * 1.25);
-	al_draw_bitmap(ghost, x, y, 0);
+	// al_draw_bitmap(ghost, x, y, 0);
 
 	//damage bar
 	int x1 = 90 + x - p.size;
@@ -355,13 +364,11 @@ int battleKeyDown(Pointer *pointer, int key){
 
 		case ALLEGRO_KEY_ENTER:
 			if(pointer->option == 1){
-				//code
-				break;
+				return 1;
 			}
 
 			if(pointer->option == 2){
-				//code
-				break;
+				return 2;
 			}
 
 			if(pointer->option == 3){
@@ -370,8 +377,27 @@ int battleKeyDown(Pointer *pointer, int key){
 		break;
 	}
 
-	return 1;
+	return 10;
 
+}
+
+void initPlayerAttack(Attack *a, Player p){
+	a->x = p.x + p.size;
+	a->y = p.y;
+
+	// a->type = 1;
+	a->active = false;
+}
+
+void drawPlayerAttack(Attack a, int kc){
+
+	if(kc == 1){
+		al_draw_filled_circle(a.x, a.y, ATTACK_SIZE, al_map_rgb(10, 255, 153));
+	}
+
+	if(kc == 2){
+		al_draw_filled_circle(a.x, a.y, SPECIAL_ATTACK_SIZE, al_map_rgb(88, 10, 255));
+	}
 }
 
 
@@ -381,16 +407,25 @@ int main(int argc, char const *argv[]){
 	init();
 	Player p; 
 	Pointer pointer; 
-	Ghost g;
+	Attack ghostAttack;
+	Attack playerAttack;
+
 	bool playing = true;
 	bool exploration = true; //true para exploration, false para fight
 
-	// LOOPING DO JOGO --------------------------------------------------------------------------------------------------------
+	int kc;
+	int time;
+	bool redraw = false;
+
 	al_start_timer(timer);
 	initExplorationPlayer(&p);
+	initBattlePlayer(&p);
 	initPointer(&pointer);
-	// initGhost(&g);
-	
+	initPlayerAttack(&playerAttack, p);
+	// initGhostAttack(&ghostAttack);
+
+	// LOOPING DO JOGO --------------------------------------------------------------------------------------------------------
+
 	while(playing){
 
 		ALLEGRO_EVENT ev;
@@ -412,15 +447,19 @@ int main(int argc, char const *argv[]){
 
 			} else {
 
-				initBattlePlayer(&p);
-				drawBattleScenario(p);
+				drawBattleScenario(p, pointer);
 				drawGhost(p);
-				drawPointer(pointer);
 				drawBattlePlayer(p);
+
+				drawPlayerAttack(playerAttack, kc);
+				// drawGhostAttack(ghostAttack);
+
+				//verifica se o tiro ta ativo
+				//incrementa o tiro.x
+				//desenha o tiro
 
 			}
 
-			// printf("att\n");
 			al_flip_display();
 		}
 		
@@ -443,9 +482,14 @@ int main(int argc, char const *argv[]){
 				// printf("\n");
 			} else {
 
-				if(battleKeyDown(&pointer, ev.keyboard.keycode) == 0){
+
+				kc = battleKeyDown(&pointer, ev.keyboard.keycode);
+				
+				printf("\n%i", kc);
+				if(kc == 0){ //fugir
 					exploration = true;
-				}
+				}	
+
 			}
 
 
