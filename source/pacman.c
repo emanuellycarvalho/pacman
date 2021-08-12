@@ -390,7 +390,6 @@ void initPlayerAttack(Attack *a, Player p){
 }
 
 void drawPlayerAttack(Attack a, int kc){
-
 	if(kc == 1){
 		al_draw_filled_circle(a.x, a.y, ATTACK_SIZE, al_map_rgb(10, 255, 153));
 	}
@@ -451,7 +450,10 @@ int main(int argc, char const *argv[]){
 				drawGhost(p);
 				drawBattlePlayer(p);
 
-				drawPlayerAttack(playerAttack, kc);
+				if(playerAttack.active){
+					drawPlayerAttack(playerAttack, kc);
+				}
+
 				// drawGhostAttack(ghostAttack);
 
 				//verifica se o tiro ta ativo
@@ -488,6 +490,10 @@ int main(int argc, char const *argv[]){
 				printf("\n%i", kc);
 				if(kc == 0){ //fugir
 					exploration = true;
+				}
+
+				if(kc == 1 || kc == 2){
+					playerAttack.active = true;
 				}	
 
 			}
