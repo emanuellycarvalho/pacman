@@ -486,6 +486,11 @@ int main(int argc, char const *argv[]){
 					} else {
 						calculateGhostDamage(&g, playerAttack);
 						initPlayerAttack(&playerAttack, p);
+						if(g->hp < 0){
+							exploration = true;
+							initGhost(&g);
+							initExplorationPlayer(&p);
+						}
 					}
 				}
 
