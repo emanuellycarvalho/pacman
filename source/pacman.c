@@ -60,6 +60,7 @@ ALLEGRO_EVENT_QUEUE *event_queue = NULL;
 ALLEGRO_DISPLAY *display = NULL; 
 ALLEGRO_TIMER *timer = NULL;
 ALLEGRO_FONT *font = NULL;
+ALLEGRO_FONT *gameover_font = NULL;
 
 
 
@@ -110,6 +111,11 @@ int init(){
 	// INSTALANDO FONTES DE TEXTO ----------------------------------------------------------------------------------------------
 	font = al_load_font("../assets/pixelfont.ttf", 32, 1);   
 	if(!font) {
+		fprintf(stderr, "opa, lombrou na hora de carregar a pixelfont do menu!\n");
+	}
+
+	gameover_font = al_load_font("../assets/pixelfont.ttf", 80, 1);   
+	if(!gameover_font) {
 		fprintf(stderr, "opa, lombrou na hora de carregar a pixelfont!\n");
 	}
 
@@ -136,7 +142,6 @@ int randomInteger(int min, int max){
 }
 
 // EXPLORATION ---------------------------------------------------------------------------------------------------------------------
-
 void initExplorationPlayer(Player *p){
 
 	p->hp = 100;
@@ -146,7 +151,6 @@ void initExplorationPlayer(Player *p){
 	p->color = al_map_rgb(255, 213, 0);
 
 }
-
 
 void drawExplorationScenario(){
 
@@ -234,6 +238,15 @@ bool foundGhost(Player p){
 
 
 // BATTLE ---------------------------------------------------------------------------------------------------------------------
+void gameOver(){
+	int x =  SCREEN_W / 2 - 200;
+	int y = SCREEN_H / 2 - 50; 
+	al_clear_to_color(al_map_rgb(0, 0, 0));
+	al_draw_text(gameover_font, al_map_rgb(230, 0, 23), x + 1, y + 1, 0, "GAME OVER");  
+	al_draw_text(gameover_font, al_map_rgb(9, 0, 255), x, y, 0, "GAME OVER"); //shadow
+
+}
+
 void drawPlayerDamageBar(Player p){
 	int x1 = p.x - p.size;
 	int y1 = p.y + (p.y / 3);	
@@ -530,7 +543,10 @@ int main(int argc, char const *argv[]){
 						if(p.hp <= 0){
 							initGhost(&p, &g);
 							initBattlePlayer(&p);
-							exploration = true;
+							gameOver();
+							al_flip_display();
+							al_rest(5);
+							playing = false;
 						}
 					}
 
@@ -559,18 +575,19 @@ int main(int argc, char const *argv[]){
 				// printf("\n");
 			} else {
 
+				if(!playerAttack.active && !ghostAttack.active){
+					kc = battleKeyDown(&pointer, ev.keyboard.keycode);
+					
+					printf("\n%i", kc);
+					if(kc == 0){ //fugir
+						exploration = true;
+					}
 
-				kc = battleKeyDown(&pointer, ev.keyboard.keycode);
-				
-				printf("\n%i", kc);
-				if(kc == 0){ //fugir
-					exploration = true;
+					if(kc == 1 || kc == 2){
+						playerAttack.active = true;
+						playerAttack.type = kc;
+					}	
 				}
-
-				if(kc == 1 || kc == 2){
-					playerAttack.active = true;
-					playerAttack.type = kc;
-				}	
 
 			}
 
