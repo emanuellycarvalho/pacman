@@ -311,20 +311,24 @@ void drawBattleScenario(Player p, Pointer pointer){
 
 }
 
+void drawGhostDamageBar(Ghost g, Player p){
+	//damage bar
+	int x1 = 90 + g.x - p.size;
+	int y1 = p.y + (p.y / 3);	
+
+	int complete = 90 + g.x + p.size;
+	int x2 =  (g.hp/100) * complete;
+	int y2 = y1 + 5;
+
+	al_draw_filled_rectangle(x1, y1, x2, y2, al_map_rgb(4, 230, 0));
+}
 
 void drawGhost(Player p, Ghost g){
 
 	// ALLEGRO_BITMAP *ghost = al_load_bitmap("../assets/img/2.bmp"); //entre 2 e 7
 	// al_draw_bitmap(ghost, g.x, g.y, 0);
 
-	//damage bar
-	int x1 = 90 + g.x - p.size;
-	int y1 = p.y + (p.y / 3);	
-
-	int x2 =  90 + g.x + p.size;
-	int y2 = y1 + 5;
-
-	al_draw_filled_rectangle(x1, y1, x2, y2, al_map_rgb(4, 230, 0));
+	drawGhostDamageBar(g, p);
 
 }
 
