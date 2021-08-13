@@ -236,8 +236,7 @@ void drawPlayerDamageBar(Player p){
 	int x1 = p.x - p.size;
 	int y1 = p.y + (p.y / 3);	
 
-	int complete = p.x + p.size;
-	int x2 = (p.hp/100) * complete; 
+	int x2 = p.x + (p.hp/100) * p.size; 
 	int y2 = y1 + 5;
 
 	al_draw_filled_rectangle(x1, y1, x2, y2, al_map_rgb(4, 230, 0));
@@ -312,12 +311,11 @@ void drawBattleScenario(Player p, Pointer pointer){
 }
 
 void drawGhostDamageBar(Ghost g, Player p){
-	//damage bar
 	int x1 = 90 + g.x - p.size;
 	int y1 = p.y + (p.y / 3);	
 
-	int complete = 90 + g.x + p.size;
-	int x2 =  (g.hp/100) * complete;
+	int complete = 90 + p.size;
+	int x2 = g.x + (g.hp/100) * complete;
 	int y2 = y1 + 5;
 
 	al_draw_filled_rectangle(x1, y1, x2, y2, al_map_rgb(4, 230, 0));
@@ -485,10 +483,11 @@ int main(int argc, char const *argv[]){
 						playerAttack.x += ATTACK_SIZE;
 					} else {
 						calculateGhostDamage(&g, playerAttack);
+						// printf("\n %f", g.hp);
 						initPlayerAttack(&playerAttack, p);
-						if(g->hp < 0){
-							exploration = true;
-							initGhost(&g);
+						if(g.hp <= 0){
+							// exploration = true;
+							initGhost(&p, &g);
 							initExplorationPlayer(&p);
 						}
 					}
