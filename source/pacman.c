@@ -138,7 +138,9 @@ int init(){
 }
 
 int randomInteger(int min, int max){
-	return min + rand()%(max - min +1);
+	int x = (int)min + rand()%(max - min +1);
+	printf("\n%i", x);
+	return x;
 }
 
 // EXPLORATION ---------------------------------------------------------------------------------------------------------------------
@@ -251,7 +253,8 @@ void drawPlayerDamageBar(Player p){
 	int x1 = p.x - p.size;
 	int y1 = p.y + (p.y / 3);	
 
-	int x2 = p.x + (p.hp/100) * p.size; 
+	int complete = p.x + p.size; 
+	int x2 = (p.hp/100) * complete; 
 	int y2 = y1 + 5;
 
 	al_draw_filled_rectangle(x1, y1, x2, y2, al_map_rgb(4, 230, 0));
@@ -338,8 +341,8 @@ void drawGhostDamageBar(Ghost g, Player p){
 
 void drawGhost(Player p, Ghost g){
 
-	ALLEGRO_BITMAP *ghost = al_load_bitmap("../assets/img/2.bmp"); //entre 2 e 7
-	al_draw_bitmap(ghost, g.x, g.y, 0);
+	// ALLEGRO_BITMAP *ghost = al_load_bitmap("../assets/img/2.bmp"); //entre 2 e 7
+	// al_draw_bitmap(ghost, g.x, g.y, 0);
 
 	drawGhostDamageBar(g, p);
 
@@ -417,7 +420,6 @@ void initPlayerAttack(Attack *a, Player p){
 	a->x = p.x + p.size;
 	a->y = p.y;
 
-	// a->type = 1;
 	a->active = false;
 }
 
@@ -443,7 +445,7 @@ void calculateGhostDamage(Ghost *g, Attack a){
 
 void initGhostAttack(Attack *a, Ghost g){
 	a->x = g.x;
-	a->y = g.y + GHOST_SIZE/2;
+	a->y = g.y + GHOST_SIZE / 2;
 
 	a->type = randomInteger(0, 2);
 	a->active = false;
@@ -451,6 +453,9 @@ void initGhostAttack(Attack *a, Ghost g){
 }
 
 void calculatePlayerDamage(Player *p, Attack a){
+	// printf("\n  %f", p->hp);
+	// printf("\n- %f", a.type);
+
 	if(a.type == 1){
 		p->hp -= ATTACK_DAMAGE;
 	}
@@ -545,7 +550,7 @@ int main(int argc, char const *argv[]){
 							initBattlePlayer(&p);
 							gameOver();
 							al_flip_display();
-							al_rest(5);
+							al_rest(3.5);
 							playing = false;
 						}
 					}
@@ -578,7 +583,7 @@ int main(int argc, char const *argv[]){
 				if(!playerAttack.active && !ghostAttack.active){
 					kc = battleKeyDown(&pointer, ev.keyboard.keycode);
 					
-					printf("\n%i", kc);
+					// printf("\n%i", kc);
 					if(kc == 0){ //fugir
 						exploration = true;
 					}
