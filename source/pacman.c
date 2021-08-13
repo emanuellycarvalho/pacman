@@ -15,6 +15,13 @@ typedef struct Player {
 
 } Player;
 
+typedef struct Ghost {
+
+	float hp;
+	int x, y;
+
+} Ghost;
+
 typedef struct Pointer {
 
 	int option;
@@ -42,7 +49,6 @@ const int STEP_SIZE = 30;
 const int END_SIZE = 30;
 const int MENU_SIZE = 110;
 const int MO_Y = 20; //menu options
-const int ATTACK_TIME = 4; 
 const int ATTACK_SIZE = 12;
 const int SPECIAL_ATTACK_SIZE = 22;
 const int ATTACK_DAMAGE = 20;
@@ -226,6 +232,17 @@ bool foundGhost(Player p){
 
 
 // BATTLE ---------------------------------------------------------------------------------------------------------------------
+void drawPlayerDamageBar(Player p){
+	int x1 = p.x - p.size;
+	int y1 = p.y + (p.y / 3);	
+
+	int complete = p.x + p.size;
+	int x2 = (p.hp/100) * complete; 
+	int y2 = y1 + 5;
+
+	al_draw_filled_rectangle(x1, y1, x2, y2, al_map_rgb(4, 230, 0));
+}
+
 void drawBattlePlayer(Player p){
 
 	int x = p.x + p.size;
@@ -235,24 +252,24 @@ void drawBattlePlayer(Player p){
 	al_draw_filled_circle(p.x, p.y, p.size, p.color);
 	al_draw_filled_triangle(p.x, p.y, x, y, x, z, al_map_rgb(0, 0, 0));
 
-	//damage bar
-	int x1 = p.x - p.size;
-	int y1 = p.y + (p.y / 3);	
-
-	int x2 = p.x + p.size;
-	int y2 = y1 + 5;
-
-	al_draw_filled_rectangle(x1, y1, x2, y2, al_map_rgb(4, 230, 0));
+	drawPlayerDamageBar(p);
 
 }
 
 void initBattlePlayer(Player *p){
 
+	p->hp = 100;
 	p->size = PLAYER_SIZE * 3;
 	p->x = p->size + p->size/3;
 	p->y = (SCREEN_H - MENU_SIZE)/2 + p->size;
 	p->color = al_map_rgb(255, 213, 0);
 
+}
+
+void initGhost(Player *p, Ghost *g){
+	g->x = p->x + p->size + 400;
+	g->y = p->y - (p->size * 1.25);
+	g->hp = 100;
 }
 
 void initPointer(Pointer *pointer){
@@ -295,18 +312,16 @@ void drawBattleScenario(Player p, Pointer pointer){
 }
 
 
-void drawGhost(Player p){
+void drawGhost(Player p, Ghost g){
 
 	// ALLEGRO_BITMAP *ghost = al_load_bitmap("../assets/img/2.bmp"); //entre 2 e 7
-	int x = p.x + p.size + 400;
-	int y = p.y - (p.size * 1.25);
-	// al_draw_bitmap(ghost, x, y, 0);
+	// al_draw_bitmap(ghost, g.x, g.y, 0);
 
 	//damage bar
-	int x1 = 90 + x - p.size;
+	int x1 = 90 + g.x - p.size;
 	int y1 = p.y + (p.y / 3);	
 
-	int x2 =  90 + x + p.size;
+	int x2 =  90 + g.x + p.size;
 	int y2 = y1 + 5;
 
 	al_draw_filled_rectangle(x1, y1, x2, y2, al_map_rgb(4, 230, 0));
@@ -389,21 +404,30 @@ void initPlayerAttack(Attack *a, Player p){
 	a->active = false;
 }
 
-void drawPlayerAttack(Attack a, int kc){
-	if(kc == 1){
+void drawPlayerAttack(Attack a){
+	if(a.type == 1){
 		al_draw_filled_circle(a.x, a.y, ATTACK_SIZE, al_map_rgb(10, 255, 153));
 	}
 
-	if(kc == 2){
+	if(a.type == 2){
 		al_draw_filled_circle(a.x, a.y, SPECIAL_ATTACK_SIZE, al_map_rgb(88, 10, 255));
 	}
 }
 
+void calculateGhostDamage(Ghost *g, Attack a){
+	if(a.type == 1){
+		g->hp -= ATTACK_DAMAGE;
+	}
 
+	if(a.type == 2){
+		g->hp -= SPECIAL_ATTACK_DAMAGE;
+	}
+}
 
 int main(int argc, char const *argv[]){
 
 	init();
+	Ghost g;
 	Player p; 
 	Pointer pointer; 
 	Attack ghostAttack;
@@ -419,6 +443,7 @@ int main(int argc, char const *argv[]){
 	al_start_timer(timer);
 	initExplorationPlayer(&p);
 	initBattlePlayer(&p);
+	initGhost(&p, &g);
 	initPointer(&pointer);
 	initPlayerAttack(&playerAttack, p);
 	// initGhostAttack(&ghostAttack);
@@ -447,11 +472,17 @@ int main(int argc, char const *argv[]){
 			} else {
 
 				drawBattleScenario(p, pointer);
-				drawGhost(p);
+				drawGhost(p, g);
 				drawBattlePlayer(p);
 
 				if(playerAttack.active){
-					drawPlayerAttack(playerAttack, kc);
+					drawPlayerAttack(playerAttack);
+					if(playerAttack.x < g.x){
+						playerAttack.x += ATTACK_SIZE;
+					} else {
+						calculateGhostDamage(&g, playerAttack);
+						initPlayerAttack(&playerAttack, p);
+					}
 				}
 
 				// drawGhostAttack(ghostAttack);
@@ -494,6 +525,7 @@ int main(int argc, char const *argv[]){
 
 				if(kc == 1 || kc == 2){
 					playerAttack.active = true;
+					playerAttack.type = kc;
 				}	
 
 			}

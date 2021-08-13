@@ -7,3 +7,7 @@ Inspirado em <i>Final Fantasy</i> e <i>Pacman</i>, a personagem amarela precisa 
 <br>
 <br>
 Desenvolvido em <b>c</b> com o auxílio do <b> Allegro </b>.
+<br>
+<br>
+<b>OBS: </b> Caso trave na tela de batalha, comente as linhas que carregam a imagem do fantasma (314 e 315);
+
