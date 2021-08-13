@@ -406,7 +406,7 @@ void initPlayerAttack(Attack *a, Player p){
 	a->active = false;
 }
 
-void drawPlayerAttack(Attack a){
+void drawAttack(Attack a){
 	if(a.type == 1){
 		al_draw_filled_circle(a.x, a.y, ATTACK_SIZE, al_map_rgb(10, 255, 153));
 	}
@@ -424,6 +424,15 @@ void calculateGhostDamage(Ghost *g, Attack a){
 	if(a.type == 2){
 		g->hp -= SPECIAL_ATTACK_DAMAGE;
 	}
+}
+
+void initGhostAttack(Attack *a, Ghost g){
+	a->x = g.x - g.size;
+	a->y = g.y;
+
+	a->type = randomInteger(1, 2);
+	a->active = false;
+
 }
 
 int main(int argc, char const *argv[]){
@@ -448,7 +457,7 @@ int main(int argc, char const *argv[]){
 	initGhost(&p, &g);
 	initPointer(&pointer);
 	initPlayerAttack(&playerAttack, p);
-	// initGhostAttack(&ghostAttack);
+	initGhostAttack(&ghostAttack, g);
 
 	// LOOPING DO JOGO --------------------------------------------------------------------------------------------------------
 
@@ -478,7 +487,8 @@ int main(int argc, char const *argv[]){
 				drawBattlePlayer(p);
 
 				if(playerAttack.active){
-					drawPlayerAttack(playerAttack);
+					drawAttack(playerAttack);
+
 					if(playerAttack.x < g.x){
 						playerAttack.x += ATTACK_SIZE;
 					} else {
@@ -486,14 +496,17 @@ int main(int argc, char const *argv[]){
 						// printf("\n %f", g.hp);
 						initPlayerAttack(&playerAttack, p);
 						if(g.hp <= 0){
-							// exploration = true;
 							initGhost(&p, &g);
-							initExplorationPlayer(&p);
+							exploration = true;
+						} else {
+							ghostAttack.active = true;
 						}
 					}
 				}
 
-				// drawGhostAttack(ghostAttack);
+				if(ghostAttack.active){
+					drawAttack(ghostAttack);
+				}
 
 				//verifica se o tiro ta ativo
 				//incrementa o tiro.x
