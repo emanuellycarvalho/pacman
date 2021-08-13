@@ -53,6 +53,8 @@ const int ATTACK_SIZE = 12;
 const int SPECIAL_ATTACK_SIZE = 22;
 const int ATTACK_DAMAGE = 20;
 const int SPECIAL_ATTACK_DAMAGE = 30;
+const int ATTACK_STEP = 7;
+const int GHOST_SIZE = 180;
 
 ALLEGRO_EVENT_QUEUE *event_queue = NULL; 
 ALLEGRO_DISPLAY *display = NULL; 
@@ -323,8 +325,8 @@ void drawGhostDamageBar(Ghost g, Player p){
 
 void drawGhost(Player p, Ghost g){
 
-	// ALLEGRO_BITMAP *ghost = al_load_bitmap("../assets/img/2.bmp"); //entre 2 e 7
-	// al_draw_bitmap(ghost, g.x, g.y, 0);
+	ALLEGRO_BITMAP *ghost = al_load_bitmap("../assets/img/2.bmp"); //entre 2 e 7
+	al_draw_bitmap(ghost, g.x, g.y, 0);
 
 	drawGhostDamageBar(g, p);
 
@@ -427,12 +429,22 @@ void calculateGhostDamage(Ghost *g, Attack a){
 }
 
 void initGhostAttack(Attack *a, Ghost g){
-	a->x = g.x - g.size;
-	a->y = g.y;
+	a->x = g.x;
+	a->y = g.y + GHOST_SIZE/2;
 
-	a->type = randomInteger(1, 2);
+	a->type = randomInteger(0, 2);
 	a->active = false;
 
+}
+
+void calculatePlayerDamage(Player *p, Attack a){
+	if(a.type == 1){
+		p->hp -= ATTACK_DAMAGE;
+	}
+
+	if(a.type == 2){
+		p->hp -= SPECIAL_ATTACK_DAMAGE;
+	}
 }
 
 int main(int argc, char const *argv[]){
@@ -487,16 +499,18 @@ int main(int argc, char const *argv[]){
 				drawBattlePlayer(p);
 
 				if(playerAttack.active){
+					ghostAttack.active = false;
 					drawAttack(playerAttack);
 
 					if(playerAttack.x < g.x){
-						playerAttack.x += ATTACK_SIZE;
+						playerAttack.x += ATTACK_STEP;
 					} else {
 						calculateGhostDamage(&g, playerAttack);
 						// printf("\n %f", g.hp);
 						initPlayerAttack(&playerAttack, p);
 						if(g.hp <= 0){
 							initGhost(&p, &g);
+							initBattlePlayer(&p);
 							exploration = true;
 						} else {
 							ghostAttack.active = true;
@@ -505,13 +519,22 @@ int main(int argc, char const *argv[]){
 				}
 
 				if(ghostAttack.active){
+					playerAttack.active = false;
 					drawAttack(ghostAttack);
+
+					if(ghostAttack.x > p.x){
+						ghostAttack.x -= ATTACK_STEP;
+					} else {
+						calculatePlayerDamage(&p, ghostAttack);
+						initGhostAttack(&ghostAttack, g);
+						if(p.hp <= 0){
+							initGhost(&p, &g);
+							initBattlePlayer(&p);
+							exploration = true;
+						}
+					}
+
 				}
-
-				//verifica se o tiro ta ativo
-				//incrementa o tiro.x
-				//desenha o tiro
-
 			}
 
 			al_flip_display();
