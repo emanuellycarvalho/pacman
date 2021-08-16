@@ -144,6 +144,7 @@ int randomInteger(int min, int max){
 	return (int)min + rand()%(max - min +1);
 }
 
+
 // EXPLORATION ---------------------------------------------------------------------------------------------------------------------
 void initExplorationPlayer(Player *p){
 
@@ -236,7 +237,7 @@ float dist(int x1, int y1, int x2, int y2){
 
 bool foundGhost(Player p){
 
-	return false;
+	return true;
 
 	// if(dist(p.x, p.y, 0, 0) <= MAX_DIST){
 	// 	return true;
@@ -265,6 +266,7 @@ void scoreRecordScreen(int score){
 
 	char scores[10];
 	itoa(score, scores, 10);
+	x += 50;
 	y += 100;
 
 	al_draw_text(big_font, al_map_rgb(9, 0, 255), x, y, 0, scores); //shadow
@@ -512,7 +514,7 @@ int main(int argc, char const *argv[]){
 	bool exploration = true; //true para exploration, false para fight
 
 	int kc;
-	int playerScore;
+	int playerScore = 0;
 	int scoreRecord = 0;
 
 	al_start_timer(timer);
