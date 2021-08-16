@@ -1,5 +1,6 @@
 #include <math.h>
 #include <stdio.h>
+#include <string.h>
 #include <stdbool.h>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_font.h>
@@ -11,6 +12,7 @@ typedef struct Player {
 
 	float hp;
 	int x, y, size;
+	int score;
 	ALLEGRO_COLOR color;
 
 } Player;
@@ -19,6 +21,7 @@ typedef struct Ghost {
 
 	float hp;
 	int x, y;
+	int level;
 
 } Ghost;
 
@@ -60,7 +63,7 @@ ALLEGRO_EVENT_QUEUE *event_queue = NULL;
 ALLEGRO_DISPLAY *display = NULL; 
 ALLEGRO_TIMER *timer = NULL;
 ALLEGRO_FONT *font = NULL;
-ALLEGRO_FONT *gameover_font = NULL;
+ALLEGRO_FONT *big_font = NULL;
 
 
 
@@ -114,8 +117,8 @@ int init(){
 		fprintf(stderr, "opa, lombrou na hora de carregar a pixelfont do menu!\n");
 	}
 
-	gameover_font = al_load_font("../assets/pixelfont.ttf", 80, 1);   
-	if(!gameover_font) {
+	big_font = al_load_font("../assets/pixelfont.ttf", 80, 1);   
+	if(!big_font) {
 		fprintf(stderr, "opa, lombrou na hora de carregar a pixelfont!\n");
 	}
 
@@ -138,9 +141,7 @@ int init(){
 }
 
 int randomInteger(int min, int max){
-	int x = (int)min + rand()%(max - min +1);
-	printf("\n%i", x);
-	return x;
+	return (int)min + rand()%(max - min +1);
 }
 
 // EXPLORATION ---------------------------------------------------------------------------------------------------------------------
@@ -154,10 +155,16 @@ void initExplorationPlayer(Player *p){
 
 }
 
-void drawExplorationScenario(){
+void drawExplorationScenario(int score){
+	char scores[10];
+	itoa(score, scores, 10);
+	char scoreText[17] = "Score: ";
+	strcat(scoreText, scores);
 
 	al_clear_to_color(al_map_rgb(0, 0, 0));
 	al_draw_filled_rectangle(SCREEN_W - 90, 10, (SCREEN_W - 10), (SCREEN_H/4), al_map_rgb(145, 80, 0));
+	al_draw_text(font, al_map_rgb(10, 255, 153), 5, 5, 0, scoreText);  
+
 
 }
 
@@ -229,7 +236,7 @@ float dist(int x1, int y1, int x2, int y2){
 
 bool foundGhost(Player p){
 
-	return true;
+	return false;
 
 	// if(dist(p.x, p.y, 0, 0) <= MAX_DIST){
 	// 	return true;
@@ -240,13 +247,27 @@ bool foundGhost(Player p){
 
 
 // BATTLE ---------------------------------------------------------------------------------------------------------------------
-void gameOver(){
+void gameOverScreen(){
 	int x =  SCREEN_W / 2 - 200;
 	int y = SCREEN_H / 2 - 50; 
 	al_clear_to_color(al_map_rgb(0, 0, 0));
-	al_draw_text(gameover_font, al_map_rgb(230, 0, 23), x + 1, y + 1, 0, "GAME OVER");  
-	al_draw_text(gameover_font, al_map_rgb(9, 0, 255), x, y, 0, "GAME OVER"); //shadow
+	al_draw_text(big_font, al_map_rgb(230, 0, 23), x + 1, y + 1, 0, "GAME OVER");  
+	al_draw_text(big_font, al_map_rgb(9, 0, 255), x, y, 0, "GAME OVER"); //shadow
 
+}
+
+void scoreRecordScreen(int score){
+	int x =  SCREEN_W / 2 - 200;
+	int y = SCREEN_H / 2 - 50; 
+	al_clear_to_color(al_map_rgb(0, 0, 0));
+	al_draw_text(big_font, al_map_rgb(230, 0, 23), x + 1, y + 1, 0, "NEW RECORD");  
+	al_draw_text(big_font, al_map_rgb(9, 0, 255), x, y, 0, "NEW RECORD"); //shadow
+
+	char scores[10];
+	itoa(score, scores, 10);
+	y += 100;
+
+	al_draw_text(big_font, al_map_rgb(9, 0, 255), x, y, 0, scores); //shadow
 }
 
 void drawPlayerDamageBar(Player p){
@@ -286,7 +307,8 @@ void initBattlePlayer(Player *p){
 void initGhost(Player *p, Ghost *g){
 	g->x = p->x + p->size + 400;
 	g->y = p->y - (p->size * 1.25);
-	g->hp = 100;
+	g->level = randomInteger(1, 4);
+	g->hp = 100 - (2 * g->level / 100); // pra ficar mais fácil de combater tbm
 }
 
 void initPointer(Pointer *pointer){
@@ -423,7 +445,7 @@ void initPlayerAttack(Attack *a, Player p){
 	a->active = false;
 }
 
-void drawAttack(Attack a){
+void drawPlayerAttack(Attack a){
 	if(a.type == 1){
 		al_draw_filled_circle(a.x, a.y, ATTACK_SIZE, al_map_rgb(10, 255, 153));
 	}
@@ -431,6 +453,20 @@ void drawAttack(Attack a){
 	if(a.type == 2){
 		al_draw_filled_circle(a.x, a.y, SPECIAL_ATTACK_SIZE, al_map_rgb(88, 10, 255));
 	}
+}
+
+void drawGhostAttack(Attack a, Ghost g){
+	int size;
+
+	if(a.type == 1){
+		size = ATTACK_SIZE * (g.level / 100);
+	}
+
+	if(a.type == 2){
+		size = SPECIAL_ATTACK_SIZE * (g.level / 100);
+	}
+
+	al_draw_filled_circle(a.x, a.y, size, al_map_rgb(10, 255, 153));
 }
 
 void calculateGhostDamage(Ghost *g, Attack a){
@@ -453,8 +489,6 @@ void initGhostAttack(Attack *a, Ghost g){
 }
 
 void calculatePlayerDamage(Player *p, Attack a){
-	// printf("\n  %f", p->hp);
-	// printf("\n- %f", a.type);
 
 	if(a.type == 1){
 		p->hp -= ATTACK_DAMAGE;
@@ -478,8 +512,8 @@ int main(int argc, char const *argv[]){
 	bool exploration = true; //true para exploration, false para fight
 
 	int kc;
-	int time;
-	bool redraw = false;
+	int playerScore;
+	int scoreRecord = 0;
 
 	al_start_timer(timer);
 	initExplorationPlayer(&p);
@@ -499,7 +533,7 @@ int main(int argc, char const *argv[]){
 		if(ev.type == ALLEGRO_EVENT_TIMER) {
 			
 			if(exploration){
-				drawExplorationScenario();
+				drawExplorationScenario(playerScore);
 				drawExplorationPlayer(p);
 
 				if(isHome(&p)){
@@ -518,15 +552,20 @@ int main(int argc, char const *argv[]){
 
 				if(playerAttack.active){
 					ghostAttack.active = false;
-					drawAttack(playerAttack);
+					drawPlayerAttack(playerAttack);
 
 					if(playerAttack.x < g.x){
 						playerAttack.x += ATTACK_STEP;
 					} else {
 						calculateGhostDamage(&g, playerAttack);
-						// printf("\n %f", g.hp);
 						initPlayerAttack(&playerAttack, p);
 						if(g.hp <= 0){
+							playerScore += g.level * 100;
+							if(playerScore > scoreRecord){
+								scoreRecordScreen(playerScore);
+								al_flip_display();
+								al_rest(3.5);
+							}
 							initGhost(&p, &g);
 							initBattlePlayer(&p);
 							exploration = true;
@@ -538,7 +577,7 @@ int main(int argc, char const *argv[]){
 
 				if(ghostAttack.active){
 					playerAttack.active = false;
-					drawAttack(ghostAttack);
+					drawGhostAttack(ghostAttack, g);
 
 					if(ghostAttack.x > p.x){
 						ghostAttack.x -= ATTACK_STEP;
@@ -548,7 +587,7 @@ int main(int argc, char const *argv[]){
 						if(p.hp <= 0){
 							initGhost(&p, &g);
 							initBattlePlayer(&p);
-							gameOver();
+							gameOverScreen();
 							al_flip_display();
 							al_rest(3.5);
 							playing = false;
@@ -574,16 +613,11 @@ int main(int argc, char const *argv[]){
 			if(exploration){
 
 				explorationKeyDown(&p, ev.keyboard.keycode);
-				// printf("%i", p.x);
-				// printf(", ");
-				// printf("%i", p.y);
-				// printf("\n");
 			} else {
 
 				if(!playerAttack.active && !ghostAttack.active){
 					kc = battleKeyDown(&pointer, ev.keyboard.keycode);
 					
-					// printf("\n%i", kc);
 					if(kc == 0){ //fugir
 						exploration = true;
 					}
@@ -595,10 +629,6 @@ int main(int argc, char const *argv[]){
 				}
 
 			}
-
-
-			//imprime qual tecla foi
-			// printf("\ncodigo tecla: %d", ev.keyboard.keycode);
 		}
 	}
 
