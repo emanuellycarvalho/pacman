@@ -669,8 +669,18 @@ int main(int argc, char const *argv[]){
 
 	int kc;
 	int playerScore = 0;
-	int scoreRecord = 0;
 	int runCountDown = 0;
+	// int scoreRecord = 0;
+
+	char recordChar[20];
+	char *recordStr = fgets(recordChar, 19, recordFile);
+
+	if(!recordStr){
+		fprintf(stderr, "opa, lombrou na hora de ler o recorde!\n");
+		return -1;
+	} else{
+		printf("%s", recordChar);
+	}
 
 	al_start_timer(timer);
 	initExplorationPlayer(&ep);
@@ -703,7 +713,6 @@ int main(int argc, char const *argv[]){
 
 
 				int time = (int)(al_get_timer_count(timer)/FPS);
-				printf("\n  %i", time);
 				if(time > 3){ 
 					if(runCountDown + 4 < time){ 
 						int index = foundGhost(ep, ghosts, amt);
