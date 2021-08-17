@@ -13,8 +13,6 @@ typedef struct Player {
 	float hp;
 	int x, y, size;
 	int direction;
-	int score;
-	ALLEGRO_COLOR color;
 
 } Player;
 
@@ -270,7 +268,6 @@ void initExplorationPlayer(Player *p){
 	p->size = PLAYER_SIZE;
 	p->x = PLAYER_SIZE;
 	p->y = SCREEN_H - (PLAYER_SIZE * 2.5);
-	p->color = al_map_rgb(255, 213, 0);
 	p->direction = 1;
 
 }
@@ -307,61 +304,54 @@ void drawExplorationPlayer(Player p){
 	}
 
 	al_draw_bitmap(player, p.x, p.y, 0);
-
-	// int x = p.x + p.size;
-	// int y = p.y + p.size/2;
-	// int z = p.y - p.size;
-
-	// al_draw_filled_circle(p.x, p.y, p.size, p.color);
-	// al_draw_filled_triangle(p.x, p.y, x, y, x, z, al_map_rgb(0, 0, 0));
-	// al_draw_filled_triangle(p.x, p.y, p.tx1, p.ty1, p.tx2, p.tx1, al_map_rgb(0,0,0));
-
 }
 
 
 void explorationKeyDown(Player *p, int key){
+	printf("\n %i", key);
+	if(key == ALLEGRO_KEY_UP || key == 23){
+		if(p->y + PLAYER_SIZE - STEP_SIZE < p->size){
+			p->y = 0;
+			return;
+		}
 
-	switch(key){
+		p->direction = 4;
+		p->y = p->y - STEP_SIZE;
 
-		case ALLEGRO_KEY_UP:
-			if(p->y + PLAYER_SIZE - STEP_SIZE < p->size){
-				p->y = 0;
-				break;
-			}
+		return;
+	}
 
-			p->direction = 4;
-			p->y = p->y - STEP_SIZE;
-		break;
+	if(key == ALLEGRO_KEY_DOWN || key == 19){
+		if(p->y + PLAYER_SIZE * 2.5 > SCREEN_H - p->size){
+			p->y = SCREEN_H - PLAYER_SIZE * 2.5;
+			return;
+		}
 
-		case ALLEGRO_KEY_DOWN:
-			if(p->y + PLAYER_SIZE * 2.5 > SCREEN_H - p->size){
-				p->y = SCREEN_H - PLAYER_SIZE * 2.5;
-				break;
-			}
+		p->direction = 3;
+		p->y = p->y + STEP_SIZE;
+		return;
+	}
 
-			p->direction = 3;
-			p->y = p->y + STEP_SIZE;
-		break;
+	if(key == ALLEGRO_KEY_LEFT || key == 1){
+		if(p->x + PLAYER_SIZE - STEP_SIZE < p->size){
+			p->x = 0;
+			return;
+		}
 
-		case ALLEGRO_KEY_LEFT:
-			if(p->x + PLAYER_SIZE - STEP_SIZE < p->size){
-				p->x = 0;
-				break;
-			}
+		p->direction = 2;
+		p->x = p->x - STEP_SIZE;
+		return;
+	}
 
-			p->direction = 2;
-			p->x = p->x - STEP_SIZE;
-		break;
-
-		case ALLEGRO_KEY_RIGHT:
-			if(p->x + PLAYER_SIZE * 2.5 > SCREEN_W - PLAYER_SIZE){
-				p->x = SCREEN_W - PLAYER_SIZE * 2.5;
-				break;
-			}
-			
-			p->direction = 1;
-			p->x = p->x + STEP_SIZE;
-		break;
+	if(key == ALLEGRO_KEY_RIGHT || key == 4){
+		if(p->x + PLAYER_SIZE * 2.5 > SCREEN_W - PLAYER_SIZE){
+			p->x = SCREEN_W - PLAYER_SIZE * 2.5;
+			return;
+		}
+		
+		p->direction = 1;
+		p->x = p->x + STEP_SIZE;
+		return;
 	}
 }
 
@@ -429,7 +419,7 @@ void drawBattlePlayer(Player p){
 	int y = p.y + p.size/2;
 	int z = p.y - p.size;
 
-	al_draw_filled_circle(p.x, p.y, p.size, p.color);
+	al_draw_filled_circle(p.x, p.y, p.size, al_map_rgb(255, 213, 0));
 	al_draw_filled_triangle(p.x, p.y, x, y, x, z, al_map_rgb(0, 0, 0));
 
 	drawPlayerDamageBar(p);
@@ -442,7 +432,6 @@ void initBattlePlayer(Player *p){
 	p->size = PLAYER_SIZE * 3;
 	p->x = p->size + p->size/3;
 	p->y = (SCREEN_H - MENU_SIZE)/2 + p->size;
-	p->color = al_map_rgb(255, 213, 0);
 
 }
 
@@ -462,7 +451,6 @@ void initPointer(Pointer *pointer){
 	pointer->color = al_map_rgb(4, 230, 0);
 
 }
-
 
 void drawBattleScenario(Player p, Pointer pointer){
 	int shadow_y = MO_Y + 1;
@@ -714,7 +702,7 @@ int main(int argc, char const *argv[]){
 			
 			if(exploration){
 				drawExplorationScenario(playerScore);
-				drawTestGhosts(ghosts, amt);
+				// drawTestGhosts(ghosts, amt);
 				drawExplorationPlayer(ep);
 
 				if(isHome(&ep)){
