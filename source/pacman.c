@@ -12,6 +12,7 @@ typedef struct Player {
 
 	float hp;
 	int x, y, size;
+	int direction;
 	int score;
 	ALLEGRO_COLOR color;
 
@@ -21,7 +22,7 @@ typedef struct Ghost {
 
 	float hp, radius;
 	int x, y, size;
-	int level;
+	int level, index;
 	bool alive;
 
 } Ghost;
@@ -47,13 +48,13 @@ const float FPS = 100;
 const float PI = 3.141592;
 // const float MAX_RADIUS = 50.8;
 
-const int MIN_RADIUS = 1;
-const int MAX_RADIUS = 50.8;
+const int MIN_RADIUS = 5;
+const int MAX_RADIUS = 50;
 const int SCREEN_W = 800;
 const int SCREEN_H = 550;
 const int MIN_GHOST = 18;
 const int MAX_GHOST = 22;
-const int PLAYER_SIZE = 25;
+const int PLAYER_SIZE = 30;
 const int STEP_SIZE = 30;
 const int END_SIZE = 30;
 const int MENU_SIZE = 110;
@@ -159,17 +160,17 @@ float dist(int x1, int y1, int x2, int y2){
 	return sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2));
 }
 
-bool validateSpots(int x, int y){
-	if(x > (SCREEN_W - 90) && y < (SCREEN_W / 4)){
+bool validateSpots(float radius, int x, int y){
+	if(x  + radius > (SCREEN_W - 90) && y + radius < (SCREEN_W / 4)){
 		return false;
 	}
 
-	if(x < 6 && y < 6){
+	if(x  + radius < 6 && y + radius < 6){
 		return false;
 	}
 
 	const c = PLAYER_SIZE * 2 + 10;
-	if(x < c && y > SCREEN_H - c){
+	if(x  + radius < c && y + radius > SCREEN_H - c){
 		return false;
 	}
 
@@ -181,7 +182,7 @@ void initExplorationGhost(Ghost *g){
 	int x = randomInteger(radius, (SCREEN_W - radius));
 	int y = randomInteger(radius, (SCREEN_H - radius));
 
-	while(!validateSpots(x, y)){ 
+	while(!validateSpots(radius, x, y)){ 
 		radius = randomFloat(MIN_RADIUS, MAX_RADIUS);
 		x = randomInteger(radius, SCREEN_W - radius);
 		y = randomInteger(radius, SCREEN_H - radius);
@@ -197,7 +198,7 @@ void initExplorationGhost(Ghost *g){
 bool areGhostsColliding(Ghost g, Ghost ghosts[], int index){
 	int i = 0;
 	for (i = 0; i < index; ++i){
-		if(dist(g.x, g.y, ghosts[i].x, ghosts[i].y) >= g.radius + ghosts[i].radius){
+		if(dist(g.x, g.y, ghosts[i].x, ghosts[i].y) < g.radius + ghosts[i].radius){
 			return true;
 		}
 	}
@@ -209,7 +210,9 @@ bool areGhostsColliding(Ghost g, Ghost ghosts[], int index){
 void drawTestGhosts(Ghost ghosts[], int amt){
 	int i;
 	for (i = 0; i < amt; ++i){
-		al_draw_filled_circle(ghosts[i].x, ghosts[i].y, ghosts[i].radius/3.1415962, al_map_rgb(9, 0, 255));
+		if(ghosts[i].alive){
+			al_draw_filled_circle(ghosts[i].x, ghosts[i].y, ghosts[i].radius/3.1415962, al_map_rgb(9, 0, 255));
+		}
 	}
 }
 
@@ -218,14 +221,14 @@ void victoryScreen(int score){
 	int x =  SCREEN_W / 2 - 200;
 	int y = SCREEN_H / 2 - 50; 
 	al_clear_to_color(al_map_rgb(0, 0, 0));
-	al_draw_text(big_font, al_map_rgb(230, 0, 23), x + 1, y + 1, 0, "YOU WON");  
-	al_draw_text(big_font, al_map_rgb(9, 0, 255), x, y, 0, "YOU WON"); //shadow
+	al_draw_text(big_font, al_map_rgb(230, 0, 23), x + 1, y + 1, 0, "YOU DID IT!");  
+	al_draw_text(big_font, al_map_rgb(9, 0, 255), x, y, 0, "YOU DID IT!"); //shadow
 
 	char scores[10];
 	itoa(score, scores, 10);
 	char scoreText[17] = "Your score: ";
 
-	x -= 50;
+	x -= 100;
 	y += 100;
 
 	al_draw_text(big_font, al_map_rgb(9, 0, 255), x, y, 0, strcat(scoreText, scores)); //shadow
@@ -235,9 +238,10 @@ void initExplorationPlayer(Player *p){
 
 	p->hp = 100;
 	p->size = PLAYER_SIZE;
-	p->x = PLAYER_SIZE + 10;
-	p->y = SCREEN_H - (PLAYER_SIZE + 10);
+	p->x = PLAYER_SIZE;
+	p->y = SCREEN_H - (PLAYER_SIZE * 2.5);
 	p->color = al_map_rgb(255, 213, 0);
+	p->direction = 1;
 
 }
 
@@ -254,13 +258,33 @@ void drawExplorationScenario(int score){
 }
 
 void drawExplorationPlayer(Player p){
+	ALLEGRO_BITMAP *player;
 
-	int x = p.x + p.size;
-	int y = p.y + p.size/2;
-	int z = p.y - p.size;
+	switch(p.direction){
+		case 1:
+			player = al_load_bitmap("../assets/img/pacman-right.png"); 
+		break;
+		case 2:
+			player = al_load_bitmap("../assets/img/pacman-left.png"); 
+		break;
+		case 3:
+			player = al_load_bitmap("../assets/img/pacman-down.png"); 
+		break;
+		case 4:
+			player = al_load_bitmap("../assets/img/pacman-up.png"); 
+		break;
 
-	al_draw_filled_circle(p.x, p.y, p.size, p.color);
-	al_draw_filled_triangle(p.x, p.y, x, y, x, z, al_map_rgb(0, 0, 0));
+	}
+
+	al_draw_bitmap(player, p.x, p.y, 0);
+
+	// int x = p.x + p.size;
+	// int y = p.y + p.size/2;
+	// int z = p.y - p.size;
+
+	// al_draw_filled_circle(p.x, p.y, p.size, p.color);
+	// al_draw_filled_triangle(p.x, p.y, x, y, x, z, al_map_rgb(0, 0, 0));
+	// al_draw_filled_triangle(p.x, p.y, p.tx1, p.ty1, p.tx2, p.tx1, al_map_rgb(0,0,0));
 
 }
 
@@ -270,38 +294,42 @@ void explorationKeyDown(Player *p, int key){
 	switch(key){
 
 		case ALLEGRO_KEY_UP:
-			if(p->y - STEP_SIZE < p->size){
-				p->y = p->size;
+			if(p->y + PLAYER_SIZE - STEP_SIZE < p->size){
+				p->y = 0;
 				break;
 			}
 
+			p->direction = 4;
 			p->y = p->y - STEP_SIZE;
 		break;
 
 		case ALLEGRO_KEY_DOWN:
-			if(p->y + STEP_SIZE > SCREEN_H - p->size){
-				p->y = SCREEN_H - p->size;
+			if(p->y + PLAYER_SIZE * 2.5 > SCREEN_H - p->size){
+				p->y = SCREEN_H - PLAYER_SIZE * 2.5;
 				break;
 			}
 
+			p->direction = 3;
 			p->y = p->y + STEP_SIZE;
 		break;
 
 		case ALLEGRO_KEY_LEFT:
-			if(p->x - STEP_SIZE < p->size){
-				p->x = p->size;
+			if(p->x + PLAYER_SIZE - STEP_SIZE < p->size){
+				p->x = 0;
 				break;
 			}
 
+			p->direction = 2;
 			p->x = p->x - STEP_SIZE;
 		break;
 
 		case ALLEGRO_KEY_RIGHT:
-			if(p->x + STEP_SIZE > SCREEN_W - p->size){
-				p->x = SCREEN_W - p->size;
+			if(p->x + PLAYER_SIZE * 2.5 > SCREEN_W - PLAYER_SIZE){
+				p->x = SCREEN_W - PLAYER_SIZE * 2.5;
 				break;
 			}
 			
+			p->direction = 1;
 			p->x = p->x + STEP_SIZE;
 		break;
 	}
@@ -315,15 +343,15 @@ bool isHome(Player *p){
 	return false;
 }
 
-bool foundGhost(Player p, Ghost ghosts[], int amt){
-	int i;
-	for (i = 0; i < amt; ++i){
-		if(dist(p.x, p.y, ghosts[i].x, ghosts[i].y) < p.size + ghosts[i].radius){
-			return true;
-		}
-	}
+int foundGhost(Player p, Ghost ghosts[], int amt){
+	// int i;
+	// for (i = 0; i < amt; ++i){
+	// 	if(dist(p.x, p.y, ghosts[i].x, ghosts[i].y) < p.size + ghosts[i].radius && ghosts[i].alive){
+	// 		return i;
+	// 	}
+	// }
 
-	return false;
+	return -1;
 }
 
 
@@ -444,6 +472,11 @@ void drawGhostDamageBar(Ghost g, Player p){
 }
 
 void drawGhost(Player p, Ghost g){
+	char ghostLevelText[15] =  "Ghost level ";
+	char ghostLevelNumber[1];
+	itoa(g.level, ghostLevelNumber, 10);
+
+	al_draw_text(font, al_map_rgb(9, 0, 255), SCREEN_W - 100, SCREEN_H - 50, 0, strcat(ghostLevelText, ghostLevelNumber));
 
 	// ALLEGRO_BITMAP *ghost = al_load_bitmap("../assets/img/2.bmp"); //entre 2 e 7
 	// al_draw_bitmap(ghost, g.x, g.y, 0);
@@ -539,16 +572,19 @@ void drawPlayerAttack(Attack a){
 
 void drawGhostAttack(Attack a, Ghost g){
 	int size;
+	ALLEGRO_COLOR color;
 
 	if(a.type == 1){
-		size = ATTACK_SIZE * (g.level / 100);
+		size = ATTACK_SIZE + ATTACK_SIZE * (g.level / 10);
+		color = al_map_rgb(0, 153, 255);
 	}
 
 	if(a.type == 2){
-		size = SPECIAL_ATTACK_SIZE * (g.level / 100);
+		size = SPECIAL_ATTACK_SIZE + ATTACK_SIZE * (g.level / 10);
+		color = al_map_rgb(230, 0, 203);
 	}
 
-	al_draw_filled_circle(a.x, a.y, size, al_map_rgb(10, 255, 153));
+	al_draw_filled_circle(a.x, a.y, size, color);
 }
 
 void calculateGhostDamage(Ghost *g, Attack a){
@@ -570,21 +606,34 @@ void initGhostAttack(Attack *a, Ghost g){
 
 }
 
-void calculatePlayerDamage(Player *p, Attack a){
+void calculatePlayerDamage(Player *p, Attack a, Ghost g){
+	float damageVariable = 1;
+
+	if(g.level == 2){
+		damageVariable = 1,2;
+	}
+
+	if(g.level == 3){
+		damageVariable = 1,35;
+	}
+
+	if(g.level == 4){
+		damageVariable = 1,55;
+	}
 
 	if(a.type == 1){
-		p->hp -= ATTACK_DAMAGE;
+		p->hp -= ATTACK_DAMAGE * damageVariable;
 	}
 
 	if(a.type == 2){
-		p->hp -= SPECIAL_ATTACK_DAMAGE;
+		p->hp -= SPECIAL_ATTACK_DAMAGE * damageVariable;
 	}
 }
 
 int main(int argc, char const *argv[]){
 
 	init();
-	Ghost g;
+	Ghost eg, bg;
 	Player ep, bp; 
 	Pointer pointer; 
 	Attack ghostAttack;
@@ -599,6 +648,8 @@ int main(int argc, char const *argv[]){
 		initExplorationGhost(&ghosts[i]);
 		if(areGhostsColliding(ghosts[i], ghosts, i)){
 			i--;
+		} else{
+			ghosts[i].index = i;
 		}
 	}
 
@@ -612,10 +663,10 @@ int main(int argc, char const *argv[]){
 	al_start_timer(timer);
 	initExplorationPlayer(&ep);
 	initBattlePlayer(&bp);
-	initBattleGhost(&bp, &g);
+	initBattleGhost(&bp, &bg);
 	initPointer(&pointer);
 	initPlayerAttack(&playerAttack, bp);
-	initGhostAttack(&ghostAttack, g);
+	initGhostAttack(&ghostAttack, bg);
 
 	// LOOPING DO JOGO --------------------------------------------------------------------------------------------------------
 
@@ -638,33 +689,36 @@ int main(int argc, char const *argv[]){
 					playing = false;
 				}
 
-				if(foundGhost(ep, ghosts, amt)){
+				int index = foundGhost(ep, ghosts, amt);
+				if(index != -1){
 					exploration = false;
+					eg = ghosts[index];
 				}
 
 			} else {
 
 				drawBattleScenario(bp, pointer);
-				drawGhost(bp, g);
+				drawGhost(bp, bg);
 				drawBattlePlayer(bp);
 
 				if(playerAttack.active){
 					ghostAttack.active = false;
 					drawPlayerAttack(playerAttack);
 
-					if(playerAttack.x < g.x){
+					if(playerAttack.x < bg.x){
 						playerAttack.x += ATTACK_STEP;
 					} else {
-						calculateGhostDamage(&g, playerAttack);
+						calculateGhostDamage(&bg, playerAttack);
 						initPlayerAttack(&playerAttack, bp);
-						if(g.hp <= 0){
-							playerScore += g.level * 100;
-							if(playerScore > scoreRecord){
-								scoreRecordScreen(playerScore);
-								al_flip_display();
-								al_rest(3.5);
-							}
-							initBattleGhost(&bp, &g);
+						if(bg.hp <= 0){
+							playerScore += bg.level * 100;
+							ghosts[eg.index].alive = false;
+							// if(playerScore > scoreRecord){
+							// 	scoreRecordScreen(playerScore);
+							// 	al_flip_display();
+							// 	al_rest(3.5);
+							// }
+							initBattleGhost(&bp, &bg);
 							initBattlePlayer(&bp);
 							exploration = true;
 						} else {
@@ -675,15 +729,15 @@ int main(int argc, char const *argv[]){
 
 				if(ghostAttack.active){
 					playerAttack.active = false;
-					drawGhostAttack(ghostAttack, g);
+					drawGhostAttack(ghostAttack, bg);
 
 					if(ghostAttack.x > bp.x){
 						ghostAttack.x -= ATTACK_STEP;
 					} else {
-						calculatePlayerDamage(&bp, ghostAttack);
-						initGhostAttack(&ghostAttack, g);
+						calculatePlayerDamage(&bp, ghostAttack, bg);
+						initGhostAttack(&ghostAttack, bg);
 						if(bp.hp <= 0){
-							initBattleGhost(&bp, &g);
+							initBattleGhost(&bp, &bg);
 							initBattlePlayer(&bp);
 							gameOverScreen();
 							al_flip_display();
