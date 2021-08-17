@@ -71,8 +71,8 @@ ALLEGRO_DISPLAY *display = NULL;
 ALLEGRO_TIMER *timer = NULL;
 ALLEGRO_FONT *font = NULL;
 ALLEGRO_FONT *big_font = NULL;
-FILE *recordFile = NULL;
-
+FILE *recordScoreFile = NULL;
+char recordScoreText[20];
 
 
 int init(){
@@ -141,10 +141,21 @@ int init(){
 		return -1;
 	}
 
-	// ABRINDO O ARQUIVO DE PONTOS ----------------------------------------------------------------------------------------------
-	recordFile = fopen("../data/record.txt", "r+");
-	if(!recordFile) {
-		fprintf(stderr, "opa, lombrou na hora de ver o recorde!\n");
+	// RECUPERANDO O RECORDE ----------------------------------------------------------------------------------------------
+	recordScoreFile = fopen("../data/record.txt", "rb");
+	if(!recordScoreFile) {
+		fprintf(stderr, "opa, lombrou na hora de abrir o arquivo de recorde!\n");
+		return -1;
+	}
+
+	char *recordStr = fgets(recordScoreText, 19, recordScoreFile);
+	if(!recordStr){
+		fprintf(stderr, "opa, lombrou na hora de ler o recorde!\n");
+		return -1;
+	}
+
+	if(fclose(recordScoreFile) != 0){
+		fprintf(stderr, "opa, lombrou na hora de fechar o arquivo de recorde!\n");
 		return -1;
 	}
 
@@ -222,6 +233,17 @@ void drawTestGhosts(Ghost ghosts[], int amt){
 			al_draw_filled_circle(ghosts[i].x, ghosts[i].y, ghosts[i].radius/3.1415962, al_map_rgb(9, 0, 255));
 		}
 	}
+}
+
+void storeNewRecord(int newRecord){
+	char newRecords[20];
+	itoa(newRecord, newRecords, 10);
+
+	recordScoreFile = fopen("../data/record.txt", "w");
+	fputs(newRecords, recordScoreFile);
+
+	fclose(recordScoreFile);
+
 }
 
 // EXPLORATION ---------------------------------------------------------------------------------------------------------------------
@@ -375,7 +397,7 @@ void gameOverScreen(){
 
 }
 
-void scoreRecordScreen(int score){
+void recordScoreScreen(int score){
 	int x =  SCREEN_W / 2 - 200;
 	int y = SCREEN_H / 2 - 50; 
 	al_clear_to_color(al_map_rgb(0, 0, 0));
@@ -670,17 +692,8 @@ int main(int argc, char const *argv[]){
 	int kc;
 	int playerScore = 0;
 	int runCountDown = 0;
-	// int scoreRecord = 0;
+	int recordScoreInt = atoi(recordScoreText);
 
-	char recordChar[20];
-	char *recordStr = fgets(recordChar, 19, recordFile);
-
-	if(!recordStr){
-		fprintf(stderr, "opa, lombrou na hora de ler o recorde!\n");
-		return -1;
-	} else{
-		printf("%s", recordChar);
-	}
 
 	al_start_timer(timer);
 	initExplorationPlayer(&ep);
@@ -741,11 +754,13 @@ int main(int argc, char const *argv[]){
 						if(bg.hp <= 0){
 							playerScore += bg.level * 100;
 							ghosts[eg.index].alive = false;
-							// if(playerScore > scoreRecord){
-							// 	scoreRecordScreen(playerScore);
-							// 	al_flip_display();
-							// 	al_rest(3.5);
-							// }
+							if(playerScore > recordScoreInt){
+								recordScoreInt = playerScore;
+								storeNewRecord(playerScore);
+								recordScoreScreen(playerScore);
+								al_flip_display();
+								al_rest(3.5);
+							}
 							initBattleGhost(&bp, &bg);
 							initBattlePlayer(&bp);
 							exploration = true;
