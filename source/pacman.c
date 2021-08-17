@@ -7,6 +7,7 @@
 #include <allegro5/allegro_ttf.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_image.h>
+#include <allegro5/allegro_audio.h>
 
 typedef struct Player {
 
@@ -71,6 +72,9 @@ ALLEGRO_FONT *font = NULL;
 ALLEGRO_FONT *big_font = NULL;
 FILE *recordScoreFile = NULL;
 char recordScoreText[20];
+
+ALLEGRO_SAMPLE *theme = NULL;
+ALLEGRO_SAMPLE_INSTANCE *iTheme = NULL;
 
 
 int init(){
@@ -156,6 +160,19 @@ int init(){
 		fprintf(stderr, "opa, lombrou na hora de fechar o arquivo de recorde!\n");
 		return -1;
 	}
+
+	// INSTALANDO AUDIOS ----------------------------------------------------------------------------------------------------------
+	al_install_audio();
+	al_init_acodec_addon();
+
+	al_reserve_samples(5);
+
+	theme = al_load_sample("../assets/soundtrack/main-theme.ogg");
+	iTheme = al_create_sample_instance(theme);
+
+	al_attach_sample_instance_to_mixer(iTheme, al_get_default_mixer());
+	al_set_sample_instance_playmode(iTheme, ALLEGRO_PLAYMODE_LOOP);
+	al_set_sample_instance_gain(iTheme, 0.5); //diminui o volume
 
 	al_register_event_source(event_queue, al_get_display_event_source(display));
 	al_register_event_source(event_queue, al_get_timer_event_source(timer));
@@ -717,6 +734,7 @@ int main(int argc, char const *argv[]){
 
 	while(playing){
 
+		al_play_sample_instance(iTheme);
 		ALLEGRO_EVENT ev;
 		al_wait_for_event(event_queue, &ev);
 
@@ -840,6 +858,7 @@ int main(int argc, char const *argv[]){
 	}
 
 	al_destroy_timer(timer);
+	al_destroy_sample(theme);
 	al_destroy_display(display);
 	al_destroy_event_queue(event_queue);
 
