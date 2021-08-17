@@ -169,7 +169,7 @@ bool validateSpots(float radius, int x, int y){
 		return false;
 	}
 
-	const c = PLAYER_SIZE * 2 + 10;
+	const c = PLAYER_SIZE * 3.5;
 	if(x  + radius < c && y + radius > SCREEN_H - c){
 		return false;
 	}
@@ -656,7 +656,7 @@ int main(int argc, char const *argv[]){
 	}
 
 	bool playing = true;
-	bool exploration = true; //true para exploration, false para fight
+	bool exploration = true; //true para exploration, false para battle
 
 	int kc;
 	int playerScore = 0;
@@ -691,10 +691,14 @@ int main(int argc, char const *argv[]){
 					playing = false;
 				}
 
-				int index = foundGhost(ep, ghosts, amt);
-				if(index != -1){
-					exploration = false;
-					eg = ghosts[index];
+
+				int time = (int)(al_get_timer_count(timer)/FPS);
+				if(time > 8){ //nao acha fantasma com menos de 8s de jogo
+					int index = foundGhost(ep, ghosts, amt);
+					if(index != -1){
+						exploration = false;
+						eg = ghosts[index];
+					}
 				}
 
 			} else {
