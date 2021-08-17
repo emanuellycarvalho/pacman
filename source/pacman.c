@@ -336,7 +336,7 @@ void explorationKeyDown(Player *p, int key){
 }
 
 bool isHome(Player *p){
-	if(p->x + (p->size * 2)>= SCREEN_W - 90 && p->y - (p->size * 2)<= 120){
+	if(p->x + (p->size * 2)>= SCREEN_W - 90 && p->y <= 120){
 		return true;
 	}
 
@@ -344,12 +344,14 @@ bool isHome(Player *p){
 }
 
 int foundGhost(Player p, Ghost ghosts[], int amt){
-	// int i;
-	// for (i = 0; i < amt; ++i){
-	// 	if(dist(p.x, p.y, ghosts[i].x, ghosts[i].y) < p.size + ghosts[i].radius && ghosts[i].alive){
-	// 		return i;
-	// 	}
-	// }
+	int i;
+	int x = p.x + (p.size/2);
+	int y = p.y + (p.size/2);
+	for (i = 0; i < amt; ++i){
+		if(dist(p.x, p.y, ghosts[i].x, ghosts[i].y) < p.size + ghosts[i].radius && ghosts[i].alive){
+			return i;
+		}
+	}
 
 	return -1;
 }
