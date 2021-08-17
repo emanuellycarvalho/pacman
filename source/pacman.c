@@ -244,6 +244,29 @@ void storeNewRecord(int newRecord){
 
 }
 
+ALLEGRO_BITMAP *getGhost(Ghost g){
+
+	switch(g.level){
+
+		case 1:
+			return al_load_bitmap("../assets/img/2.bmp");
+
+		case 2:
+			return al_load_bitmap("../assets/img/4.bmp");
+
+		case 3:
+			return al_load_bitmap("../assets/img/3.bmp");
+
+		case 4:
+			return al_load_bitmap("../assets/img/7.bmp");
+
+		default:
+			return al_load_bitmap("../assets/img/2.bmp");
+
+	}
+
+}
+
 // EXPLORATION ---------------------------------------------------------------------------------------------------------------------
 void victoryScreen(int score){
 	int x =  SCREEN_W / 2 - 200;
@@ -308,7 +331,6 @@ void drawExplorationPlayer(Player p){
 
 
 void explorationKeyDown(Player *p, int key){
-	printf("\n %i", key);
 	if(key == ALLEGRO_KEY_UP || key == 23){
 		if(p->y + PLAYER_SIZE - STEP_SIZE < p->size){
 			p->y = 0;
@@ -498,7 +520,7 @@ void drawGhost(Player p, Ghost g){
 
 	al_draw_text(font, al_map_rgb(9, 0, 255), SCREEN_W - 100, SCREEN_H - 50, 0, strcat(ghostLevelText, ghostLevelNumber));
 
-	ALLEGRO_BITMAP *ghost = al_load_bitmap("../assets/img/2.bmp"); //entre 2 e 7
+	ALLEGRO_BITMAP *ghost = getGhost(g);
 	al_draw_bitmap(ghost, g.x, g.y, 0);
 
 	drawGhostDamageBar(g, p);
