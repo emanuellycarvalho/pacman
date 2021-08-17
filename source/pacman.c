@@ -417,8 +417,8 @@ void initBattlePlayer(Player *p){
 }
 
 void initBattleGhost(Player *p, Ghost *g){
-	g->x = p->x + p->size + 400;
-	g->y = p->y - (p->size * 1.25);
+	g->x = p->x + p->size + 370;
+	g->y = p->y - (p->size);
 	g->level = randomInteger(1, 4);
 	g->hp = 100 - (2 * g->level / 100); // pra ficar mais fácil de combater tbm
 }
@@ -480,8 +480,8 @@ void drawGhost(Player p, Ghost g){
 
 	al_draw_text(font, al_map_rgb(9, 0, 255), SCREEN_W - 100, SCREEN_H - 50, 0, strcat(ghostLevelText, ghostLevelNumber));
 
-	// ALLEGRO_BITMAP *ghost = al_load_bitmap("../assets/img/2.bmp"); //entre 2 e 7
-	// al_draw_bitmap(ghost, g.x, g.y, 0);
+	ALLEGRO_BITMAP *ghost = al_load_bitmap("../assets/img/2.bmp"); //entre 2 e 7
+	al_draw_bitmap(ghost, g.x, g.y, 0);
 
 	drawGhostDamageBar(g, p);
 
