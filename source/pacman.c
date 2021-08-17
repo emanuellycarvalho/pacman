@@ -661,6 +661,7 @@ int main(int argc, char const *argv[]){
 	int kc;
 	int playerScore = 0;
 	int scoreRecord = 0;
+	int runCountDown = 0;
 
 	al_start_timer(timer);
 	initExplorationPlayer(&ep);
@@ -694,10 +695,12 @@ int main(int argc, char const *argv[]){
 
 				int time = (int)(al_get_timer_count(timer)/FPS);
 				if(time > 8){ //nao acha fantasma com menos de 8s de jogo
-					int index = foundGhost(ep, ghosts, amt);
-					if(index != -1){
-						exploration = false;
-						eg = ghosts[index];
+					if(runCountDown + 8 > time){
+						int index = foundGhost(ep, ghosts, amt);
+						if(index != -1){
+							exploration = false;
+							eg = ghosts[index];
+						}
 					}
 				}
 
@@ -777,12 +780,13 @@ int main(int argc, char const *argv[]){
 					kc = battleKeyDown(&pointer, ev.keyboard.keycode);
 					
 					if(kc == 0){ //fugir
+						runCountDown = (int)(al_get_timer_count(timer)/FPS);
 						exploration = true;
 					}
 
 					if(kc == 1 || kc == 2){
-						playerAttack.active = true;
 						playerAttack.type = kc;
+						playerAttack.active = true;
 					}	
 				}
 
