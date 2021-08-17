@@ -694,8 +694,9 @@ int main(int argc, char const *argv[]){
 
 
 				int time = (int)(al_get_timer_count(timer)/FPS);
-				if(time > 8){ //nao acha fantasma com menos de 8s de jogo
-					if(runCountDown + 8 > time){
+				printf("\n  %i", time);
+				if(time > 3){ 
+					if(runCountDown + 4 < time){ 
 						int index = foundGhost(ep, ghosts, amt);
 						if(index != -1){
 							exploration = false;
@@ -781,6 +782,7 @@ int main(int argc, char const *argv[]){
 					
 					if(kc == 0){ //fugir
 						runCountDown = (int)(al_get_timer_count(timer)/FPS);
+						printf("\n%i", runCountDown);
 						exploration = true;
 					}
 
