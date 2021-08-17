@@ -71,6 +71,7 @@ ALLEGRO_DISPLAY *display = NULL;
 ALLEGRO_TIMER *timer = NULL;
 ALLEGRO_FONT *font = NULL;
 ALLEGRO_FONT *big_font = NULL;
+FILE *recordFile = NULL;
 
 
 
@@ -137,6 +138,13 @@ int init(){
 
 	if(!al_install_mouse()) {
 		fprintf(stderr, "opa, lombrou na hora de instalar o mouse!\n");
+		return -1;
+	}
+
+	// ABRINDO O ARQUIVO DE PONTOS ----------------------------------------------------------------------------------------------
+	recordFile = fopen("../data/record.txt", "r+");
+	if(!recordFile) {
+		fprintf(stderr, "opa, lombrou na hora de ver o recorde!\n");
 		return -1;
 	}
 
@@ -635,6 +643,8 @@ void calculatePlayerDamage(Player *p, Attack a, Ghost g){
 int main(int argc, char const *argv[]){
 
 	init();
+	srand(time(NULL));
+
 	Ghost eg, bg;
 	Player ep, bp; 
 	Pointer pointer; 
@@ -645,7 +655,6 @@ int main(int argc, char const *argv[]){
 	int amt = randomInteger(MIN_GHOST, MAX_GHOST);
 
 	int i;
-	srand(time(NULL));
 	for (i = 0; i < amt; ++i){
 		initExplorationGhost(&ghosts[i]);
 		if(areGhostsColliding(ghosts[i], ghosts, i)){
