@@ -65,17 +65,17 @@ const int SPECIAL_ATTACK_DAMAGE = 30;
 const int ATTACK_STEP = 7;
 const int GHOST_SIZE = 180;
 
-ALLEGRO_EVENT_QUEUE *event_queue = NULL; 
-ALLEGRO_DISPLAY *display = NULL; 
-ALLEGRO_TIMER *timer = NULL;
-ALLEGRO_FONT *font = NULL;
-ALLEGRO_FONT *big_font = NULL;
-FILE *recordScoreFile = NULL;
+ALLEGRO_EVENT_QUEUE *event_queue; 
+ALLEGRO_DISPLAY *display; 
+ALLEGRO_TIMER *timer;
+ALLEGRO_FONT *font;
+ALLEGRO_FONT *big_font;
+FILE *recordScoreFile;
 char recordScoreText[20];
 
-ALLEGRO_SAMPLE *theme = NULL;
-ALLEGRO_SAMPLE_INSTANCE *iTheme = NULL;
-
+ALLEGRO_SAMPLE *theme;
+ALLEGRO_SAMPLE_INSTANCE *iTheme;
+ALLEGRO_BITMAP *gameGoal;
 
 int init(){
 
@@ -120,6 +120,8 @@ int init(){
 		fprintf(stderr, "opa, lombrou na hora de inicializar o ttf!\n");
 		return -1;
 	}
+
+	al_set_target_bitmap(al_get_backbuffer(display));
 
 	// INSTALANDO FONTES DE TEXTO ----------------------------------------------------------------------------------------------
 	font = al_load_font("../assets/pixelfont.ttf", 32, 1);   
@@ -318,9 +320,20 @@ void drawExplorationScenario(int score){
 	char scoreText[17] = "Score: ";
 
 	al_clear_to_color(al_map_rgb(0, 0, 0));
-	al_draw_filled_rectangle(SCREEN_W - 90, 10, (SCREEN_W - 10), (SCREEN_H/4), al_map_rgb(145, 80, 0));
 	al_draw_text(font, al_map_rgb(10, 255, 153), 5, 5, 0, strcat(scoreText, scores));  
+	// al_draw_filled_rectangle(SCREEN_W - 90, 10, (SCREEN_W - 10), (SCREEN_H/4), al_map_rgb(145, 80, 0));
 
+	int x = SCREEN_W - 100;
+	int y = 10;
+	// al_clear_to_color(gameGoal, 0xff00ff);
+	gameGoal = al_load_bitmap("../assets/img/opened-door.png");
+
+	int animationWidth = al_get_bitmap_width(gameGoal)/32;
+  	int animationHeight = al_get_bitmap_height(gameGoal)/32;
+
+  	// al_draw_bitmap_region(gameGoal, 0, 0, animationWidth, animationHeight, x, y, 0);
+
+	al_draw_bitmap(gameGoal, x, y, 0);
 
 }
 
@@ -395,7 +408,7 @@ void explorationKeyDown(Player *p, int key){
 }
 
 bool isHome(Player *p){
-	if(p->x + (p->size * 2)>= SCREEN_W - 90 && p->y <= 120){
+	if(p->x + (p->size * 2)>= SCREEN_W - 90 && p->y <= 100){
 		return true;
 	}
 
@@ -860,6 +873,7 @@ int main(int argc, char const *argv[]){
 	al_destroy_timer(timer);
 	al_destroy_sample(theme);
 	al_destroy_display(display);
+	al_destroy_bitmap(gameGoal);
 	al_destroy_event_queue(event_queue);
 
 	return 0;
