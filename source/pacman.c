@@ -249,7 +249,7 @@ bool validateSpots(float radius, int x, int y){
 		return false;
 	}
 
-	const c = PLAYER_SIZE * 3.5;
+	const c = PLAYER_SIZE * 3;
 	if(x  + radius < c && y + radius > SCREEN_H - c){
 		return false;
 	}
@@ -530,6 +530,10 @@ void drawPlayerDamageBar(Player p){
 	int x2 = (p.hp/100) * complete; 
 	int y2 = y1 + 5;
 
+	if(x2 <= x1){
+		x2 = x1 + 3;
+	}
+
 	al_draw_filled_rectangle(x1, y1, x2, y2, al_map_rgb(4, 230, 0));
 }
 
@@ -565,8 +569,8 @@ void initBattleGhost(Player *p, Ghost *g, int gameLevel){
 	} else {
 		g->level = randomInteger(3, 8);
 	}
-	
-	g->hp = 100 - (2 * g->level / 100); // pra ficar mais fácil de combater tbm
+
+	g->hp = 100 - (4 * g->level / 100); // pra ficar mais fácil de combater tbm
 }
 
 void initPointer(Pointer *pointer){
@@ -882,6 +886,7 @@ int main(int argc, char const *argv[]){
 						gameLevel++;
 						isDoorOpened = false;
 						initExplorationPlayer(&ep);
+
 						amt = randomInteger(MIN_GHOST, MAX_GHOST);
 
 						int i;
@@ -899,7 +904,7 @@ int main(int argc, char const *argv[]){
 					if(isDoorOpened && gameLevel == 2){
 						victoryScreen(playerScore);
 						al_flip_display();
-						al_rest(3.5);
+						al_rest(3);
 						playing = false;					
 					}
 
@@ -907,7 +912,7 @@ int main(int argc, char const *argv[]){
 
 
 				if(time > 3){ 
-					if(runCountDown + 4 < time){ 
+					if(runCountDown + 3 < time){ 
 						int index = foundGhost(ep, ghosts, amt);
 						if(index != -1){
 							exploration = false;
@@ -934,7 +939,7 @@ int main(int argc, char const *argv[]){
 						calculateGhostDamage(&bg, playerAttack, gameLevel);
 						initPlayerAttack(&playerAttack, bp);
 						if(bg.hp <= 0){
-							playerScore += bg.level * 100;
+							playerScore += bg.level * 94;
 							ghosts[eg.index].alive = false;
 
 							if(playerScore > recordScoreInt){
@@ -942,7 +947,7 @@ int main(int argc, char const *argv[]){
 								storeNewRecord(playerScore);
 								recordScoreScreen(playerScore);
 								al_flip_display();
-								al_rest(3.5);
+								al_rest(3);
 							}
 
 							initBattleGhost(&bp, &bg, gameLevel);
@@ -971,7 +976,7 @@ int main(int argc, char const *argv[]){
 							initBattlePlayer(&bp);
 							gameOverScreen();
 							al_flip_display();
-							al_rest(3.5);
+							al_rest(3);
 							playing = false;
 						}
 					}
