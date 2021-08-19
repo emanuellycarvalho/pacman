@@ -1,2 +1,3 @@
 *.exe
 source/allegro_base.c
+data/record.txt
