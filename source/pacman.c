@@ -86,10 +86,12 @@ char recordScoreText[20];
 ALLEGRO_SAMPLE *theme;
 ALLEGRO_SAMPLE *attack;
 ALLEGRO_SAMPLE *startBattle;
+ALLEGRO_SAMPLE *bonusCollect;
 ALLEGRO_SAMPLE *specialAttack;
 ALLEGRO_SAMPLE_INSTANCE *iTheme;
 ALLEGRO_SAMPLE_INSTANCE *iAttack;
 ALLEGRO_SAMPLE_INSTANCE *iStartBattle;
+ALLEGRO_SAMPLE_INSTANCE *iBonusCollect;
 ALLEGRO_SAMPLE_INSTANCE *iSpecialAttack;
 
 ALLEGRO_BITMAP *gameGoal[GAME_GOAL_FRAMES];
@@ -211,6 +213,11 @@ int init(){
 	al_attach_sample_instance_to_mixer(iStartBattle, al_get_default_mixer());
 	al_set_sample_instance_playmode(iStartBattle, ALLEGRO_PLAYMODE_ONCE);
 
+	bonusCollect = al_load_sample("../assets/soundtrack/bonus-collect.ogg");
+	iBonusCollect = al_create_sample_instance(bonusCollect);
+	al_attach_sample_instance_to_mixer(iBonusCollect, al_get_default_mixer());
+	al_set_sample_instance_playmode(iBonusCollect, ALLEGRO_PLAYMODE_ONCE);
+
 	// INICIALIZANDO SPRITE ----------------------------------------------------------------------------------------------------------	
 	gameGoal[0] = al_load_bitmap("../assets/img/opening-door/1.png");
 	gameGoal[1] = al_load_bitmap("../assets/img/opening-door/2.png");
@@ -324,6 +331,7 @@ void initBonus(Bonus *b){
 
 	b->x = x;
 	b->y = y;
+	b->amount = randomInteger(50, 100);
 	b->radius = radius;
 	b->active = true;
 }
@@ -531,6 +539,19 @@ int foundGhost(Player p, Ghost ghosts[], int amt){
 	int y = p.y + (p.size/2);
 	for (i = 0; i < amt; ++i){
 		if(dist(p.x, p.y, ghosts[i].x, ghosts[i].y) < p.size + ghosts[i].radius && ghosts[i].alive){
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+int foundBonus(Player p, Bonus bonus[], int amt){
+	int i;
+	int x = p.x + (p.size/2);
+	int y = p.y + (p.size/2);
+	for (i = 0; i < amt; ++i){
+		if(dist(p.x, p.y, bonus[i].x, bonus[i].y) < p.size + bonus[i].radius && bonus[i].active){
 			return i;
 		}
 	}
@@ -981,6 +1002,13 @@ int main(int argc, char const *argv[]){
 							eg = ghosts[index];
 							al_play_sample_instance(iStartBattle);
 						}
+
+						index = foundBonus(ep, bonus, bonusAmt);
+						if(index != -1){
+							playerScore += bonus[index].amount;
+							bonus[index].active = false;
+							al_play_sample_instance(iBonusCollect);
+						}
 					}
 				}
 
@@ -1101,6 +1129,7 @@ int main(int argc, char const *argv[]){
 	al_destroy_sample(theme);
 	al_destroy_sample(attack);
 	al_destroy_sample(startBattle);
+	al_destroy_sample(bonusCollect);
 	al_destroy_sample(specialAttack);
 	al_destroy_font(big_font);
 	al_destroy_bitmap(displayIcon);
