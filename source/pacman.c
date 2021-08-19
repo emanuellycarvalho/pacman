@@ -946,7 +946,7 @@ int main(int argc, char const *argv[]){
 			int time = (int)(al_get_timer_count(timer)/FPS);
 			if(exploration){
 				drawExplorationScenario(playerScore);
-				drawTestDots(ghosts, amt, bonus, bonusAmt);
+				// drawTestDots(ghosts, amt, bonus, bonusAmt);
 				drawExplorationPlayer(ep);
 
 				if(isHome(&ep)){
