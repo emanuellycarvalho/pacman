@@ -41,6 +41,13 @@ typedef struct Attack {
 
 } Attack;
 
+typedef struct Bonus {
+	int x, y, index;
+	int amount, radius;
+	bool active;
+
+} Bonus;
+
 
 //variaveis globais
 #define GAME_GOAL_FRAMES 4
@@ -50,6 +57,8 @@ const float PI = 3.141592;
 
 const int MIN_RADIUS = 5;
 const int MAX_RADIUS = 50;
+const int MIN_BONUS = 2;
+const int MAX_BONUS = 5;
 const int SCREEN_W = 800;
 const int SCREEN_H = 550;
 const int MIN_GHOST = 18;
@@ -287,13 +296,54 @@ bool areGhostsColliding(Ghost g, Ghost ghosts[], int index){
 
 }
 
-void drawTestGhosts(Ghost ghosts[], int amt){
+void drawTestDots(Ghost ghosts[], int amt, Bonus bonus[], int bonusAmt){
 	int i;
 	for (i = 0; i < amt; ++i){
 		if(ghosts[i].alive){
 			al_draw_filled_circle(ghosts[i].x, ghosts[i].y, ghosts[i].radius/3.1415962, al_map_rgb(9, 0, 255));
 		}
 	}
+
+	for (i = 0; i < bonusAmt; ++i){
+		if(bonus[i].active){
+			al_draw_filled_circle(bonus[i].x, bonus[i].y, bonus[i].radius/3.1415962, al_map_rgb(255, 0, 80));
+		}
+	}
+}
+
+void initBonus(Bonus *b){
+	float radius = randomFloat(MIN_RADIUS, MAX_RADIUS);
+	int x = randomInteger(radius, (SCREEN_W - radius));
+	int y = randomInteger(radius, (SCREEN_H - radius));
+
+	while(!validateSpots(radius, x, y)){ 
+		radius = randomFloat(MIN_RADIUS, MAX_RADIUS);
+		x = randomInteger(radius, SCREEN_W - radius);
+		y = randomInteger(radius, SCREEN_H - radius);
+	}
+
+	b->x = x;
+	b->y = y;
+	b->radius = radius;
+	b->active = true;
+}
+
+bool areBonusColliding(Bonus b, Bonus bonus[], int index, Ghost ghosts[], int ghostAmt){
+	int i;
+	for (i = 0; i < index; ++i){
+		if(dist(b.x, b.y, bonus[i].x, bonus[i].y) < b.radius + bonus[i].radius){
+			return true;
+		}
+
+		int j;
+		for(j = 0; j < ghostAmt; j++){
+			if(dist(b.x, b.y, ghosts[j].x, ghosts[j].y) < b.radius + ghosts[j].radius){
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 void storeNewRecord(int newRecord){
@@ -531,7 +581,7 @@ void drawPlayerDamageBar(Player p){
 	int y2 = y1 + 5;
 
 	if(x2 <= x1){
-		x2 = x1 + 3;
+		x2 = x1 + 3;	
 	}
 
 	al_draw_filled_rectangle(x1, y1, x2, y2, al_map_rgb(4, 230, 0));
@@ -825,6 +875,18 @@ int main(int argc, char const *argv[]){
 		}
 	}
 
+	Bonus bonus[MAX_BONUS];
+	int bonusAmt = randomInteger(MIN_BONUS, MAX_BONUS);
+
+	for (i = 0; i < bonusAmt; ++i){
+		initBonus(&bonus[i]);
+		if(areBonusColliding(bonus[i], bonus, i, ghosts, amt)){
+			i--;
+		} else {
+			bonus[i].index = i;
+		}
+	}
+
 	bool playing = true;
 	bool exploration = true; //true para exploration, false para battle
 
@@ -863,7 +925,7 @@ int main(int argc, char const *argv[]){
 			int time = (int)(al_get_timer_count(timer)/FPS);
 			if(exploration){
 				drawExplorationScenario(playerScore);
-				drawTestGhosts(ghosts, amt);
+				drawTestDots(ghosts, amt, bonus, bonusAmt);
 				drawExplorationPlayer(ep);
 
 				if(isHome(&ep)){
