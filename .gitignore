@@ -1,3 +1,5 @@
-*.exe
-source/allegro_base.c
+allegro_base.c
+makefile.c
+pacman.o
+pacman.c
 data/record.txt
