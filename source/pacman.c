@@ -43,9 +43,10 @@ typedef struct Attack {
 
 
 //variaveis globais
+#define GAME_GOAL_FRAMES 4
+
 const float FPS = 100;
 const float PI = 3.141592;
-// const float MAX_RADIUS = 50.8;
 
 const int MIN_RADIUS = 5;
 const int MAX_RADIUS = 50;
@@ -74,8 +75,14 @@ FILE *recordScoreFile;
 char recordScoreText[20];
 
 ALLEGRO_SAMPLE *theme;
+ALLEGRO_SAMPLE *attack;
+ALLEGRO_SAMPLE *specialAttack;
+ALLEGRO_SAMPLE *startBattle;
 ALLEGRO_SAMPLE_INSTANCE *iTheme;
-ALLEGRO_BITMAP *gameGoal;
+ALLEGRO_SAMPLE_INSTANCE *iAttack;
+ALLEGRO_SAMPLE_INSTANCE *iSpecialAttack;
+ALLEGRO_SAMPLE_INSTANCE *iStartBattle;
+ALLEGRO_BITMAP *gameGoal[GAME_GOAL_FRAMES];
 
 int init(){
 
@@ -171,16 +178,49 @@ int init(){
 
 	theme = al_load_sample("../assets/soundtrack/main-theme.ogg");
 	iTheme = al_create_sample_instance(theme);
-
 	al_attach_sample_instance_to_mixer(iTheme, al_get_default_mixer());
 	al_set_sample_instance_playmode(iTheme, ALLEGRO_PLAYMODE_LOOP);
-	al_set_sample_instance_gain(iTheme, 0.5); //diminui o volume
+	al_set_sample_instance_gain(iTheme, 0.35); //diminui o volume
+
+	// attack = al_load_sample("../assets/soundtrack/attack.ogg");
+	// iAttack = al_create_sample_instance(attack);
+	// al_attach_sample_instance_to_mixer(iAttack, al_get_default_mixer());
+	// al_set_sample_instance_playmode(iAttack, ALLEGRO_PLAYMODE_ONCE);
+	// al_set_sample_instance_gain(iAttack, 7);
+
+	// specialAttack = al_load_sample("../assets/soundtrack/special-attack.ogg");
+	// iSpecialAttack = al_create_sample_instance(specialAttack);
+	// al_attach_sample_instance_to_mixer(iSpecialAttack, al_get_default_mixer());
+	// al_set_sample_instance_playmode(iSpecialAttack, ALLEGRO_PLAYMODE_ONCE);
+
+	startBattle = al_load_sample("../assets/soundtrack/start-battle.ogg");
+	iStartBattle = al_create_sample_instance(startBattle);
+	al_attach_sample_instance_to_mixer(iStartBattle, al_get_default_mixer());
+	al_set_sample_instance_playmode(iStartBattle, ALLEGRO_PLAYMODE_ONCE);
+
+	// INICIALIZANDO SPRITE ----------------------------------------------------------------------------------------------------------	
+	gameGoal[0] = al_load_bitmap("../assets/img/opening-door/1.png");
+	gameGoal[1] = al_load_bitmap("../assets/img/opening-door/2.png");
+	gameGoal[2] = al_load_bitmap("../assets/img/opening-door/3.png");
+	gameGoal[3] = al_load_bitmap("../assets/img/opening-door/4.png");
+
 
 	al_register_event_source(event_queue, al_get_display_event_source(display));
 	al_register_event_source(event_queue, al_get_timer_event_source(timer));
 	al_register_event_source(event_queue, al_get_keyboard_event_source());
 	al_register_event_source(event_queue, al_get_mouse_event_source());
 
+}
+
+void tutorialScreen(){
+	int first = 100;
+	int space = 15;
+
+	al_clear_to_color(al_map_rgb(210, 15, 2));
+
+	al_draw_text(font, al_map_rgb(255, 255, 7), 20, first, 0, "TESTANDO"); //shadow 
+	al_draw_text(font, al_map_rgb(255, 255, 7), 20, first + space, 0, "TESTANDO"); //shadow 
+	al_draw_text(font, al_map_rgb(255, 255, 7), 20, first + space, 0, "TESTANDO"); //shadow 
 }
 
 int randomInteger(int min, int max){
@@ -268,19 +308,19 @@ ALLEGRO_BITMAP *getGhost(Ghost g){
 	switch(g.level){
 
 		case 1:
-			return al_load_bitmap("../assets/img/2.bmp");
+			return al_load_bitmap("../assets/img/ghost-level-1.bmp");
 
 		case 2:
-			return al_load_bitmap("../assets/img/4.bmp");
+			return al_load_bitmap("../assets/img/ghost-level-2.bmp");
 
 		case 3:
-			return al_load_bitmap("../assets/img/3.bmp");
+			return al_load_bitmap("../assets/img/ghost-level-3.bmp");
 
 		case 4:
-			return al_load_bitmap("../assets/img/7.bmp");
+			return al_load_bitmap("../assets/img/ghost-level-4.bmp");
 
 		default:
-			return al_load_bitmap("../assets/img/2.bmp");
+			return al_load_bitmap("../assets/img/ghost-level-1.bmp");
 
 	}
 
@@ -325,15 +365,11 @@ void drawExplorationScenario(int score){
 
 	int x = SCREEN_W - 100;
 	int y = 10;
-	// al_clear_to_color(gameGoal, 0xff00ff);
-	gameGoal = al_load_bitmap("../assets/img/opened-door.png");
 
-	int animationWidth = al_get_bitmap_width(gameGoal)/32;
-  	int animationHeight = al_get_bitmap_height(gameGoal)/32;
+	int animationWidth = al_get_bitmap_width(gameGoal[0])/32;
+  	int animationHeight = al_get_bitmap_height(gameGoal[0])/32;
 
-  	// al_draw_bitmap_region(gameGoal, 0, 0, animationWidth, animationHeight, x, y, 0);
-
-	al_draw_bitmap(gameGoal, x, y, 0);
+	al_draw_bitmap(gameGoal[0], x, y, 0);
 
 }
 
@@ -454,6 +490,14 @@ void recordScoreScreen(int score){
 	al_draw_text(big_font, al_map_rgb(9, 0, 255), x, y, 0, scores); //shadow
 }
 
+void attackSoundEffect(Attack a){
+	if(a.type == 1){
+		al_play_sample_instance(iAttack);
+	} else {
+		al_play_sample_instance(iSpecialAttack);
+	}
+
+}
 void drawPlayerDamageBar(Player p){
 	int x1 = p.x - p.size;
 	int y1 = p.y + (p.y / 3);	
@@ -706,6 +750,7 @@ int main(int argc, char const *argv[]){
 
 	init();
 	srand(time(NULL));
+	bool showTutorial = true;
 
 	Ghost eg, bg;
 	Player ep, bp; 
@@ -734,6 +779,11 @@ int main(int argc, char const *argv[]){
 	int runCountDown = 0;
 	int recordScoreInt = atoi(recordScoreText);
 
+	int currentFrame = 0;
+	int frameCount = 0;
+	int frameDelay = 4;
+	bool isDoorOpened = false;
+	bool isDoorOpening = false;
 
 	al_start_timer(timer);
 	initExplorationPlayer(&ep);
@@ -746,33 +796,48 @@ int main(int argc, char const *argv[]){
 	// LOOPING DO JOGO --------------------------------------------------------------------------------------------------------
 
 	while(playing){
-
+	
 		al_play_sample_instance(iTheme);
 		ALLEGRO_EVENT ev;
 		al_wait_for_event(event_queue, &ev);
 
 		if(ev.type == ALLEGRO_EVENT_TIMER) {
-			
+			int time = (int)(al_get_timer_count(timer)/FPS);			
+
 			if(exploration){
 				drawExplorationScenario(playerScore);
 				// drawTestGhosts(ghosts, amt);
 				drawExplorationPlayer(ep);
 
 				if(isHome(&ep)){
-					victoryScreen(playerScore);
+					isDoorOpening = true;
+					if(frameCount++ >= frameDelay){
+						if(currentFrame++ >= GAME_GOAL_FRAMES-1){
+							currentFrame = 3;	
+							isDoorOpened = true;
+						}
+					}
+
+					al_draw_bitmap(gameGoal[currentFrame], SCREEN_W - 100, 10, 0);
 					al_flip_display();
-					al_rest(3.5);
-					playing = false;
+
+					if(isDoorOpened){
+						victoryScreen(playerScore);
+						al_flip_display();
+						al_rest(3.5);
+						playing = false;					
+					}
+
 				}
 
 
-				int time = (int)(al_get_timer_count(timer)/FPS);
 				if(time > 3){ 
 					if(runCountDown + 4 < time){ 
 						int index = foundGhost(ep, ghosts, amt);
 						if(index != -1){
 							exploration = false;
 							eg = ghosts[index];
+							al_play_sample_instance(iStartBattle);
 						}
 					}
 				}
@@ -785,6 +850,7 @@ int main(int argc, char const *argv[]){
 
 				if(playerAttack.active){
 					ghostAttack.active = false;
+					// attackSoundEffect(playerAttack);
 					drawPlayerAttack(playerAttack);
 
 					if(playerAttack.x < bg.x){
@@ -813,6 +879,7 @@ int main(int argc, char const *argv[]){
 
 				if(ghostAttack.active){
 					playerAttack.active = false;
+					// attackSoundEffect(ghostAttack);
 					drawGhostAttack(ghostAttack, bg);
 
 					if(ghostAttack.x > bp.x){
@@ -848,7 +915,10 @@ int main(int argc, char const *argv[]){
 
 			if(exploration){
 
-				explorationKeyDown(&ep, ev.keyboard.keycode);
+				if(!isDoorOpening){
+					explorationKeyDown(&ep, ev.keyboard.keycode);
+				}
+
 			} else {
 
 				if(!playerAttack.active && !ghostAttack.active){
@@ -856,7 +926,6 @@ int main(int argc, char const *argv[]){
 					
 					if(kc == 0){ //fugir
 						runCountDown = (int)(al_get_timer_count(timer)/FPS);
-						printf("\n%i", runCountDown);
 						exploration = true;
 					}
 
@@ -870,10 +939,15 @@ int main(int argc, char const *argv[]){
 		}
 	}
 
+	for (i = 0; i < GAME_GOAL_FRAMES; ++i){
+		al_destroy_bitmap(gameGoal[i]);
+	}
+
 	al_destroy_timer(timer);
 	al_destroy_sample(theme);
+	al_destroy_sample(attack);
+	al_destroy_sample(specialAttack);
 	al_destroy_display(display);
-	al_destroy_bitmap(gameGoal);
 	al_destroy_event_queue(event_queue);
 
 	return 0;
