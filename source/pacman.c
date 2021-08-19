@@ -76,13 +76,15 @@ char recordScoreText[20];
 
 ALLEGRO_SAMPLE *theme;
 ALLEGRO_SAMPLE *attack;
-ALLEGRO_SAMPLE *specialAttack;
 ALLEGRO_SAMPLE *startBattle;
+ALLEGRO_SAMPLE *specialAttack;
 ALLEGRO_SAMPLE_INSTANCE *iTheme;
 ALLEGRO_SAMPLE_INSTANCE *iAttack;
-ALLEGRO_SAMPLE_INSTANCE *iSpecialAttack;
 ALLEGRO_SAMPLE_INSTANCE *iStartBattle;
+ALLEGRO_SAMPLE_INSTANCE *iSpecialAttack;
+
 ALLEGRO_BITMAP *gameGoal[GAME_GOAL_FRAMES];
+ALLEGRO_BITMAP *displayIcon;
 
 int init(){
 
@@ -97,6 +99,8 @@ int init(){
 		fprintf(stderr, "opa, lombrou na hora de inicializar o display!\n");
 		return -1;
 	}
+
+	al_set_window_title(display, "Pacman Fantasy");
 
 	event_queue = al_create_event_queue();
 	if(!event_queue) {
@@ -800,11 +804,13 @@ int main(int argc, char const *argv[]){
 	
 		al_play_sample_instance(iTheme);
 		ALLEGRO_EVENT ev;
-		al_wait_for_event(event_queue, &ev);
+		al_wait_for_event(event_queue, &ev);			
+		// displayIcon = al_load_bitmap("../assets/img/pacman-right.png");
+		// al_set_display_icon(display, displayIcon);
+
 
 		if(ev.type == ALLEGRO_EVENT_TIMER) {
-			int time = (int)(al_get_timer_count(timer)/FPS);			
-
+			int time = (int)(al_get_timer_count(timer)/FPS);
 			if(exploration){
 				drawExplorationScenario(playerScore);
 				// drawTestGhosts(ghosts, amt);
@@ -958,9 +964,10 @@ int main(int argc, char const *argv[]){
 	al_destroy_timer(timer);
 	al_destroy_sample(theme);
 	al_destroy_sample(attack);
-	al_destroy_sample(specialAttack);
 	al_destroy_sample(startBattle);
-	al_destroy_display(display);
+	al_destroy_sample(specialAttack);
+	al_destroy_font(big_font);
+	al_destroy_bitmap(displayIcon);
 	al_destroy_event_queue(event_queue);
 
 	return 0;
