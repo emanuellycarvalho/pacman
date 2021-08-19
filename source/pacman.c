@@ -323,6 +323,18 @@ ALLEGRO_BITMAP *getGhost(Ghost g){
 		case 4:
 			return al_load_bitmap("../assets/img/ghost-level-4.bmp");
 
+		case 5:
+			return al_load_bitmap("../assets/img/ghost-level-5.bmp");
+
+		case 6:
+			return al_load_bitmap("../assets/img/ghost-level-6.bmp");
+
+		case 7:
+			return al_load_bitmap("../assets/img/ghost-level-7.bmp");
+
+		case 8:
+			return al_load_bitmap("../assets/img/ghost-level-8.bmp");
+
 		default:
 			return al_load_bitmap("../assets/img/ghost-level-1.bmp");
 
@@ -543,10 +555,19 @@ void initBattlePlayer(Player *p){
 
 }
 
-void initBattleGhost(Player *p, Ghost *g){
+void initBattleGhost(Player *p, Ghost *g, int gameLevel){
 	g->x = p->x + p->size + 370;
 	g->y = p->y - (p->size);
-	g->level = randomInteger(1, 4);
+
+	int rnd;
+	if(gameLevel == 1){
+		rnd = randomInteger(1, 4);
+	} else {
+		rnd = randomInteger(3, 8);
+	}
+		printf("\n%i", rnd);
+		g->level = rnd;
+
 	g->hp = 100 - (2 * g->level / 100); // pra ficar mais fácil de combater tbm
 }
 
@@ -601,10 +622,10 @@ void drawGhostDamageBar(Ghost g, Player p){
 
 void drawGhost(Player p, Ghost g){
 	char ghostLevelText[15] =  "Ghost level ";
-	char ghostLevelNumber[1];
+	char ghostLevelNumber[15];
 	itoa(g.level, ghostLevelNumber, 10);
 
-	al_draw_text(font, al_map_rgb(9, 0, 255), SCREEN_W - 100, SCREEN_H - 50, 0, strcat(ghostLevelText, ghostLevelNumber));
+	al_draw_text(font, al_map_rgb(255, 213, 0), SCREEN_W - 230, MENU_SIZE + 40, 0, strcat(ghostLevelText, ghostLevelNumber));
 
 	ALLEGRO_BITMAP *ghost = getGhost(g);
 	al_draw_bitmap(ghost, g.x, g.y, 0);
@@ -801,7 +822,7 @@ int main(int argc, char const *argv[]){
 	al_start_timer(timer);
 	initExplorationPlayer(&ep);
 	initBattlePlayer(&bp);
-	initBattleGhost(&bp, &bg);
+	initBattleGhost(&bp, &bg, gameLevel);
 	initPointer(&pointer);
 	initPlayerAttack(&playerAttack, bp);
 	initGhostAttack(&ghostAttack, bg);
@@ -855,7 +876,7 @@ int main(int argc, char const *argv[]){
 								ghosts[i].index = i;
 							}
 						}
-						
+
 					}
 
 					if(isDoorOpened && gameLevel == 2){
@@ -907,7 +928,7 @@ int main(int argc, char const *argv[]){
 								al_rest(3.5);
 							}
 
-							initBattleGhost(&bp, &bg);
+							initBattleGhost(&bp, &bg, gameLevel);
 							initBattlePlayer(&bp);
 							previousAttack = 0;
 							runCountDown = time;
@@ -929,7 +950,7 @@ int main(int argc, char const *argv[]){
 						calculatePlayerDamage(&bp, ghostAttack, bg);
 						initGhostAttack(&ghostAttack, bg);
 						if(bp.hp <= 0){
-							initBattleGhost(&bp, &bg);
+							initBattleGhost(&bp, &bg, gameLevel);
 							initBattlePlayer(&bp);
 							gameOverScreen();
 							al_flip_display();
@@ -967,6 +988,7 @@ int main(int argc, char const *argv[]){
 					
 					if(kc == 0){ //fugir
 						runCountDown = (int)(al_get_timer_count(timer)/FPS);
+						initBattleGhost(&bp, &bg, gameLevel);
 						exploration = true;
 					}
 
