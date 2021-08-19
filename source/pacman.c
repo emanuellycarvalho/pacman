@@ -561,13 +561,11 @@ void initBattleGhost(Player *p, Ghost *g, int gameLevel){
 
 	int rnd;
 	if(gameLevel == 1){
-		rnd = randomInteger(1, 4);
+		g->level = randomInteger(1, 4);
 	} else {
-		rnd = randomInteger(3, 8);
+		g->level = randomInteger(3, 8);
 	}
-		printf("\n%i", rnd);
-		g->level = rnd;
-
+	
 	g->hp = 100 - (2 * g->level / 100); // pra ficar mais fácil de combater tbm
 }
 
@@ -736,13 +734,13 @@ void drawGhostAttack(Attack a, Ghost g){
 	al_draw_filled_circle(a.x, a.y, size, color);
 }
 
-void calculateGhostDamage(Ghost *g, Attack a){
+void calculateGhostDamage(Ghost *g, Attack a, int gameLevel){
 	if(a.type == 1){
-		g->hp -= ATTACK_DAMAGE;
+		g->hp -= ATTACK_DAMAGE + (ATTACK_DAMAGE * gameLevel/10);
 	}
 
 	if(a.type == 2){
-		g->hp -= SPECIAL_ATTACK_DAMAGE;
+		g->hp -= SPECIAL_ATTACK_DAMAGE + (SPECIAL_ATTACK_DAMAGE * gameLevel/10);
 	}
 }
 
@@ -758,17 +756,36 @@ void initGhostAttack(Attack *a, Ghost g){
 void calculatePlayerDamage(Player *p, Attack a, Ghost g){
 	float damageVariable = 1;
 
-	if(g.level == 2){
-		damageVariable = 1,2;
+	switch(g.level){
+		case 2: 
+			damageVariable = 1.05;
+		break;
+
+		case 3: 
+			damageVariable = 1.10;
+		break;
+
+		case 4: 
+			damageVariable = 1.12;
+		break;
+
+		case 5: 
+			damageVariable = 1.15;
+		break;
+
+		case 6: 
+			damageVariable = 1.18;
+		break;
+
+		case 7: 
+			damageVariable = 1.20;
+		break;
+
+		case 8: 
+			damageVariable = 1.22;
+		break;
 	}
 
-	if(g.level == 3){
-		damageVariable = 1,35;
-	}
-
-	if(g.level == 4){
-		damageVariable = 1,55;
-	}
 
 	if(a.type == 1){
 		p->hp -= ATTACK_DAMAGE * damageVariable;
@@ -914,7 +931,7 @@ int main(int argc, char const *argv[]){
 					if(playerAttack.x < bg.x){
 						playerAttack.x += ATTACK_STEP;
 					} else {
-						calculateGhostDamage(&bg, playerAttack);
+						calculateGhostDamage(&bg, playerAttack, gameLevel);
 						initPlayerAttack(&playerAttack, bp);
 						if(bg.hp <= 0){
 							playerScore += bg.level * 100;
@@ -998,7 +1015,7 @@ int main(int argc, char const *argv[]){
 						previousAttack = 1;
 					}
 
-					if(kc == 2 && previousAttack != 2){
+					if(kc == 2 && previousAttack != 2 || gameLevel == 2){
 						playerAttack.type = kc;
 						playerAttack.active = true;
 						previousAttack = 2;
