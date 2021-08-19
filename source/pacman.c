@@ -717,7 +717,7 @@ void initGhostAttack(Attack *a, Ghost g){
 	a->x = g.x;
 	a->y = g.y + GHOST_SIZE / 2;
 
-	a->type = randomInteger(0, 2);
+	a->type = randomInteger(1, 2);
 	a->active = false;
 
 }
@@ -775,6 +775,7 @@ int main(int argc, char const *argv[]){
 	bool exploration = true; //true para exploration, false para battle
 
 	int kc;
+	int previousAttack;
 	int playerScore = 0;
 	int runCountDown = 0;
 	int recordScoreInt = atoi(recordScoreText);
@@ -861,6 +862,7 @@ int main(int argc, char const *argv[]){
 						if(bg.hp <= 0){
 							playerScore += bg.level * 100;
 							ghosts[eg.index].alive = false;
+
 							if(playerScore > recordScoreInt){
 								recordScoreInt = playerScore;
 								storeNewRecord(playerScore);
@@ -868,8 +870,11 @@ int main(int argc, char const *argv[]){
 								al_flip_display();
 								al_rest(3.5);
 							}
+
 							initBattleGhost(&bp, &bg);
 							initBattlePlayer(&bp);
+							previousAttack = 0;
+							runCountDown = time;
 							exploration = true;
 						} else {
 							ghostAttack.active = true;
@@ -929,9 +934,16 @@ int main(int argc, char const *argv[]){
 						exploration = true;
 					}
 
-					if(kc == 1 || kc == 2){
+					if(kc == 1){
 						playerAttack.type = kc;
 						playerAttack.active = true;
+						previousAttack = 1;
+					}
+
+					if(kc == 2 && previousAttack != 2){
+						playerAttack.type = kc;
+						playerAttack.active = true;
+						previousAttack = 2;
 					}	
 				}
 
@@ -947,6 +959,7 @@ int main(int argc, char const *argv[]){
 	al_destroy_sample(theme);
 	al_destroy_sample(attack);
 	al_destroy_sample(specialAttack);
+	al_destroy_sample(startBattle);
 	al_destroy_display(display);
 	al_destroy_event_queue(event_queue);
 
