@@ -348,6 +348,14 @@ void victoryScreen(int score){
 	al_draw_text(big_font, al_map_rgb(9, 0, 255), x, y, 0, strcat(scoreText, scores)); //shadow
 }
 
+void nextLevelScreen(){
+	int x =  SCREEN_W / 2 - 200;
+	int y = SCREEN_H / 2 - 50; 
+	al_clear_to_color(al_map_rgb(0, 0, 0));
+	al_draw_text(big_font, al_map_rgb(230, 0, 23), x + 1, y + 1, 0, "NEXT LEVEL");  
+	al_draw_text(big_font, al_map_rgb(9, 0, 255), x, y, 0, "NEXT LEVEL"); //shadow
+}
+
 void initExplorationPlayer(Player *p){
 
 	p->hp = 100;
@@ -754,7 +762,7 @@ int main(int argc, char const *argv[]){
 
 	init();
 	srand(time(NULL));
-	bool showTutorial = true;
+	int gameLevel = 1;
 
 	Ghost eg, bg;
 	Player ep, bp; 
@@ -813,7 +821,7 @@ int main(int argc, char const *argv[]){
 			int time = (int)(al_get_timer_count(timer)/FPS);
 			if(exploration){
 				drawExplorationScenario(playerScore);
-				// drawTestGhosts(ghosts, amt);
+				drawTestGhosts(ghosts, amt);
 				drawExplorationPlayer(ep);
 
 				if(isHome(&ep)){
@@ -821,6 +829,7 @@ int main(int argc, char const *argv[]){
 					if(frameCount++ >= frameDelay){
 						if(currentFrame++ >= GAME_GOAL_FRAMES-1){
 							currentFrame = 3;	
+							isDoorOpening = false;
 							isDoorOpened = true;
 						}
 					}
@@ -828,7 +837,28 @@ int main(int argc, char const *argv[]){
 					al_draw_bitmap(gameGoal[currentFrame], SCREEN_W - 100, 10, 0);
 					al_flip_display();
 
-					if(isDoorOpened){
+					if(isDoorOpened && gameLevel == 1){
+						nextLevelScreen();
+						al_flip_display();
+						al_rest(3);
+						gameLevel++;
+						isDoorOpened = false;
+						initExplorationPlayer(&ep);
+						amt = randomInteger(MIN_GHOST, MAX_GHOST);
+
+						int i;
+						for (i = 0; i < amt; ++i){
+							initExplorationGhost(&ghosts[i]);
+							if(areGhostsColliding(ghosts[i], ghosts, i)){
+								i--;
+							} else{
+								ghosts[i].index = i;
+							}
+						}
+						
+					}
+
+					if(isDoorOpened && gameLevel == 2){
 						victoryScreen(playerScore);
 						al_flip_display();
 						al_rest(3.5);
