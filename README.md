@@ -31,4 +31,3 @@ Documentação completa do tp <a href="https://docs.google.com/document/d/1Eypjp
 <br> <b>i)</b> abra o arquivo <i>makefile</i> 
 <br> <b>ii)</b> cole o caminho da pasta onde estão os arquivos do jogo (incluindo a própria pasta) na primeira linha 
 <br> <b>iii)</b> abra seu terminal nesse mesmo caminho e digite <i>"make ex"</i> para compilar e rodar -->
->>>>>>> ec7ffe4d259d6585d2ea4a463a9b94dcaf8880e7
