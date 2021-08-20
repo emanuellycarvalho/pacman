@@ -26,4 +26,7 @@ Desenvolvido em <b>c</b> com o auxílio do <b> Allegro</b>.
 Documentação completa do tp <a href="https://docs.google.com/document/d/1EypjpfwEqvEMefO6YUCNWzOI9MX7YZOHOTsHJN3uWUQ/edit?usp=sharing"> neste link</a>.
 <br>
 <br>
-<i>OBS: Se o seu jogo parar de funcionar enquanto você joga, <b>i)</b> abra o arquivo makefile <b>ii)</b> cole o caminho da pasta onde estão os arquivos do jogo (incluindo a própria pasta) <b>iii)</b> abra seu terminal nesse mesmo caminho e digite "make ex" para compilar e rodar</i>
+<b>OBS:</b> Se o seu jogo parar de funcionar enquanto você joga, 
+<br> <b>i)</b> abra o arquivo <i>makefile</i> 
+<br> <b>ii)</b> cole o caminho da pasta onde estão os arquivos do jogo (incluindo a própria pasta) na primeira linha 
+<br> <b>iii)</b> abra seu terminal nesse mesmo caminho e digite <i>"make ex"</i> para compilar e rodar
