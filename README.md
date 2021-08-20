@@ -22,6 +22,4 @@ Ao abrir o jogo, basta mover o Pacman usando ASDW (esquerda, baixo, direita e ci
 <br> 
 Desenvolvido em <b>c</b> com o auxílio do <b> Allegro</b>.
 <br>
-<br>
 Documentação completa do tp <a href="https://docs.google.com/document/d/1EypjpfwEqvEMefO6YUCNWzOI9MX7YZOHOTsHJN3uWUQ/edit?usp=sharing"> neste link</a>.
-

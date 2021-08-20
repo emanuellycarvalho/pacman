@@ -1,4 +1,5 @@
 allegro_base.c
+makefile
 pacman.o
 pacman.c
 data/record.txt
