@@ -952,6 +952,7 @@ int main(int argc, char const *argv[]){
 
 	bool playing = true;
 	bool exploration = true; //true para exploration, false para battle
+	bool ranAway = false;
 
 	int kc;
 	int previousAttack;
@@ -1008,6 +1009,7 @@ int main(int argc, char const *argv[]){
 					}
 
 					al_draw_bitmap(gameGoal[currentFrame], SCREEN_W - 100, 10, 0);
+					al_rest(0.05);
 					al_flip_display();
 
 					if(isDoorOpened && gameLevel == 1){
@@ -1144,21 +1146,31 @@ int main(int argc, char const *argv[]){
 					kc = battleKeyDown(&pointer, ev.keyboard.keycode);
 					
 					if(kc == 0){ //fugir
-						runCountDown = (int)(al_get_timer_count(timer)/FPS);
-						initBattleGhost(&bp, &bg, gameLevel);
-						previousDirection = 1;
-						exploration = true;
+						if(ranAway){
+							gameOverScreen();
+							al_flip_display();
+							al_rest(3); 
+							playing = false;
+						} else{
+							runCountDown = (int)(al_get_timer_count(timer)/FPS);
+							initBattleGhost(&bp, &bg, gameLevel);
+							previousDirection = 1;
+							ranAway = true;
+							exploration = true;
+						}						
 					}
 
 					if(kc == 1){
 						playerAttack.type = kc;
 						playerAttack.active = true;
 						previousAttack = 1;
+						ranAway = false;
 					}
 
 					if(kc == 2 && (previousAttack != 2 || gameLevel == 2)){
 						playerAttack.type = kc;
 						playerAttack.active = true;
+						ranAway = false;
 						previousAttack = 2;
 					}	
 				}
